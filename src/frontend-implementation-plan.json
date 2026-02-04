@@ -1,0 +1,307 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "HRMS Portal (Frontend): Auth, Employee Directory, Onboarding, Performance",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Implement Internet Identity sign-in/out, user bootstrap/profile setup, and role-based UI gating for Admin/HR vs Employee with graceful unauthorized handling.",
+      "acceptanceCriteria": [
+        "Users can sign in and sign out via Internet Identity",
+        "First-time users are created in the system on first login (at minimum with principal, display name placeholder, role default)",
+        "Access rules are enforced by the backend (e.g., non-admin cannot edit other employees)",
+        "Frontend shows/hides admin actions based on role and handles unauthorized errors gracefully"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the app shell wiring authentication-aware routing: show a sign-in screen when unauthenticated, and render the main HRMS layout when authenticated; integrate role-gated routes for Admin/HR vs Employee views and route-level unauthorized fallbacks. Use the selected 'authorization' component patterns for Internet Identity + RBAC UI gating; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useCurrentUser.ts",
+          "operation": "create",
+          "description": "Add React Query hooks to fetch current user role and current user profile (getCallerUserRole, isCallerAdmin, getCallerUserProfile) and expose a unified loading/error state to avoid profile-setup modal flash. Use the selected 'authorization' component guidance for profile setup state handling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginScreen.tsx",
+          "operation": "create",
+          "description": "Implement a login screen that uses Internet Identity login/logout actions and presents a professional entry experience; include the static logo asset at frontend/public/assets/generated/hrms-logo.dim_512x512.png. Use the selected 'authorization' component login flow guidance; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
+          "operation": "create",
+          "description": "Create a first-login profile setup dialog that prompts for name (and optionally email) and saves via saveCallerUserProfile; ensure it only appears when authenticated, profile query is fetched, and profile is null. Use shadcn-ui dialog/form components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/RequireRole.tsx",
+          "operation": "create",
+          "description": "Add a simple role guard component for Admin-only screens and for self-only screens (e.g., employee-only actions) that renders an access denied state when blocked and supports redirecting to a safe default page. Use the selected 'authorization' component RBAC UI guidance; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/feedback/AccessDenied.tsx",
+          "operation": "create",
+          "description": "Add a reusable access denied view for unauthorized errors and blocked role access, with clear English messaging and navigation back to dashboard."
+        },
+        {
+          "path": "frontend/src/utils/errors.ts",
+          "operation": "create",
+          "description": "Implement shared error helpers to detect authorization failures from backend traps and map them to user-friendly messages; ensure UI can display these errors consistently across modules."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Ensure React Query cache is cleared on logout by centralizing logout handling (or providing an app-level handler) so all cached HRMS data is reset after Internet Identity logout, consistent with the selected 'authorization' component guidance; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Build employee directory with search/filter, employee detail/profile views, and Admin/HR create/edit/deactivate/reactivate UI wired to persistent backend data.",
+      "acceptanceCriteria": [
+        "Admin/HR can create, edit, and deactivate/reactivate employee records",
+        "Employees can view (at minimum) their own employee profile; Admin/HR can view all profiles",
+        "Employee directory supports search by name/email and filtering by department/status",
+        "Data persists across reloads and canister upgrades within the project lifecycle"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/employees/useEmployees.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for employee directory search (searchEmployees) and employee detail retrieval (getEmployee, getMyEmployeeId + getEmployee) with loading/empty/error states surfaced to the UI."
+        },
+        {
+          "path": "frontend/src/hooks/employees/useEmployeeMutations.ts",
+          "operation": "create",
+          "description": "Add React Query mutations for Admin/HR employee CRUD operations (createEmployee, updateEmployee) including optimistic/invalidating updates so lists and detail pages refresh without full reload; handle backend unauthorized errors gracefully."
+        },
+        {
+          "path": "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
+          "operation": "create",
+          "description": "Create the Employees directory page with searchable list and filters (department, status) and meaningful empty/loading/error states; show Admin/HR-only actions (create/edit/deactivate/reactivate) based on role. Use shadcn-ui table/input/select/button primitives where appropriate; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/employees/EmployeeDetailPage.tsx",
+          "operation": "create",
+          "description": "Create an employee detail page that shows profile fields and related module links (onboarding/performance sections) with role-aware visibility (employees only see self; admin can view all) and robust error handling."
+        },
+        {
+          "path": "frontend/src/pages/employees/MyProfilePage.tsx",
+          "operation": "create",
+          "description": "Create a dedicated 'My Profile' view that loads the caller’s employee record via getMyEmployeeId and getEmployee, and allows self-only editable fields if permitted by backend rules (while still gracefully handling unauthorized failures)."
+        },
+        {
+          "path": "frontend/src/components/employees/EmployeeFormDialog.tsx",
+          "operation": "create",
+          "description": "Add an Admin/HR employee create/edit dialog with validation, success/error feedback, and React Query integration. Use shadcn-ui dialog/form components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Employees routes into the app navigation structure (Directory, Employee detail, My Profile) and ensure Admin-only create/edit controls are hidden behind role checks. Use the selected 'authorization' component RBAC UI gating patterns; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Create onboarding templates/tasks assignment UI for Admin/HR and employee task completion UI with progress tracking and persistent status.",
+      "acceptanceCriteria": [
+        "Admin/HR can create/edit onboarding templates and assign them to employees",
+        "Employees can view their assigned onboarding plan and mark tasks as done (and optionally add notes)",
+        "Onboarding dashboard shows plan progress (e.g., completed vs total tasks)",
+        "Tasks and completion status persist and are consistent between Admin/HR view and employee view"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/onboarding/useOnboarding.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for onboarding task retrieval (getOnboardingTasks) for a given employee (self and admin-selected) and computed progress (completed/total) exposed to the UI."
+        },
+        {
+          "path": "frontend/src/hooks/onboarding/useOnboardingMutations.ts",
+          "operation": "create",
+          "description": "Add React Query mutations for Admin/HR assigning tasks (assignOnboardingTasks) and for employees updating task status (updateOnboardingTaskStatus), including cache invalidation and user feedback on success/failure."
+        },
+        {
+          "path": "frontend/src/pages/onboarding/OnboardingEmployeePage.tsx",
+          "operation": "create",
+          "description": "Create the employee onboarding page showing assigned tasks, due dates, links/notes, and progress summary; allow employees to mark tasks Done/In progress with clear loading/empty/error states."
+        },
+        {
+          "path": "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
+          "operation": "create",
+          "description": "Create an Admin/HR onboarding management page to assemble task templates (represented as task lists in the UI) and assign them to selected employees; ensure it is role-guarded and handles unauthorized errors gracefully. Use shadcn-ui table/dialog components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/onboarding/OnboardingTaskEditor.tsx",
+          "operation": "create",
+          "description": "Add a reusable task editor component for Admin/HR to create/edit task title/description/due date/links/notes prior to assignment. Use shadcn-ui inputs and date handling UI; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Onboarding routes into navigation with role-aware entries (Admin/HR management vs Employee tasks view) and ensure each view renders appropriate empty/loading/error states."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Implement performance goals and review cycles UI: Admin/HR manages goals and cycles; employees update their own goal progress and submit self-reviews; Admin/HR adds evaluation notes and finalizes cycles.",
+      "acceptanceCriteria": [
+        "Admin/HR can create and manage goals for employees; employees can update progress on their own goals",
+        "Admin/HR can create a review cycle and associate it with employees",
+        "Employees can submit self-review text for an assigned cycle; Admin/HR can record evaluation notes and finalize a cycle",
+        "Performance data persists and is access-controlled (employees cannot view other employees’ reviews)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/performance/useGoals.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for fetching and displaying goals (getEmployeeGoals) for self and admin-selected employees, with normalized loading/empty/error states."
+        },
+        {
+          "path": "frontend/src/hooks/performance/useGoalMutations.ts",
+          "operation": "create",
+          "description": "Add React Query mutations for Admin/HR goal management (addGoals) and for employee progress updates (updateGoalProgress), including cache updates and success/error feedback."
+        },
+        {
+          "path": "frontend/src/hooks/performance/useReviews.ts",
+          "operation": "create",
+          "description": "Add React Query hooks for review cycles and reviews (getAllPerformanceCycles, getPerformanceCycle, getEmployeeReviews) and derive which actions are available based on role and review status."
+        },
+        {
+          "path": "frontend/src/hooks/performance/useReviewMutations.ts",
+          "operation": "create",
+          "description": "Add React Query mutations for creating cycles (createPerformanceCycle), creating review records (createReview), and submitting self/manager/hr reviews (submitSelfReview, submitManagerReview, submitHRReview) with robust error handling and cache invalidation."
+        },
+        {
+          "path": "frontend/src/pages/performance/GoalsPage.tsx",
+          "operation": "create",
+          "description": "Create a performance goals page: Admin/HR can select an employee and add/manage goals; employees can view their own goals and update progress/status. Include meaningful empty/loading/error states and role-based UI controls."
+        },
+        {
+          "path": "frontend/src/pages/performance/ReviewsPage.tsx",
+          "operation": "create",
+          "description": "Create a performance reviews page: Admin/HR can create review cycles, associate employees, and enter manager/HR notes; employees can submit self-review text for assigned cycles. Ensure access-controlled UI and graceful unauthorized handling."
+        },
+        {
+          "path": "frontend/src/components/performance/GoalFormDialog.tsx",
+          "operation": "create",
+          "description": "Add a reusable goal create/edit dialog used by Admin/HR, and a progress update dialog/section for employees. Use shadcn-ui dialog/form components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/performance/ReviewEditors.tsx",
+          "operation": "create",
+          "description": "Create shared components for self-review and admin evaluation editors with clear disabled states based on role/status and mutation feedback."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Performance routes into navigation (Goals, Reviews) and enforce role-aware rendering of admin-only controls using the selected 'authorization' component RBAC patterns; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Create HRMS navigation layout and core React screens with React Query data fetching, caching, and consistent loading/empty/error/mutation feedback states.",
+      "acceptanceCriteria": [
+        "App has a consistent layout with sidebar/top navigation and clear routes/pages for each module",
+        "All lists and detail views display meaningful empty states (e.g., “No employees yet”) and loading indicators",
+        "Mutations (create/update) show success/error feedback and update cached lists without full refresh"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "create",
+          "description": "Implement a consistent app layout with sidebar/top navigation, module sections (Dashboard, Employees, Onboarding, Performance), and a content outlet area for pages. Use shadcn-ui primitives as needed; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/SidebarNav.tsx",
+          "operation": "create",
+          "description": "Create a sidebar navigation component that conditionally shows Admin/HR-only items based on role and always provides access to employee-appropriate pages. Use the selected 'authorization' component RBAC UI guidance; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/dashboard/DashboardPage.tsx",
+          "operation": "create",
+          "description": "Create the Dashboard page showing high-level summaries (e.g., onboarding progress for the current employee, quick links) and include the dashboard hero image at frontend/public/assets/generated/hrms-hero.dim_1600x600.png with responsive layout-safe rendering."
+        },
+        {
+          "path": "frontend/src/components/feedback/QueryState.tsx",
+          "operation": "create",
+          "description": "Add reusable components/helpers to standardize loading spinners, empty states, and error displays across all list/detail views in English."
+        },
+        {
+          "path": "frontend/src/components/feedback/ToastProvider.tsx",
+          "operation": "create",
+          "description": "Add a lightweight success/error feedback mechanism for mutations (create/update actions) and ensure it is used consistently across modules. Use shadcn-ui toast/sonner-style primitives if available in the template; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register routes/pages for Dashboard, Employees (Directory, Detail, My Profile), Onboarding (Admin/HR and Employee), and Performance (Goals, Reviews); ensure no pages are orphaned and navigation links are present."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Apply a coherent non-blue/purple visual theme across the portal using Tailwind and shadcn styling tokens.",
+      "acceptanceCriteria": [
+        "A single theme is applied consistently across navigation, pages, forms, and tables",
+        "UI is readable and professional with strong information hierarchy for admin workflows",
+        "No dominant blue/purple theme is used"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Create the global Tailwind entry stylesheet (imported by main.tsx) and define a professional non-blue/purple theme using CSS variables compatible with shadcn (e.g., neutral + emerald/teal accents), plus base typography/spacing defaults applied consistently."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Adjust theme extension tokens (if needed) to align with the non-blue/purple brand palette and ensure consistent styling across sidebar/cards/forms using the existing CSS variable approach."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Apply consistent layout styling (backgrounds, borders, typography hierarchy) using Tailwind utility classes and shadcn-compatible tokens so all screens share the same theme. Verify the selected 'shadcn-ui' component usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add required generated static images under frontend/public/assets/generated and render them in the UI (login/header and dashboard) without backend serving.",
+      "acceptanceCriteria": [
+        "Images exist under `frontend/public/assets/generated/` and are referenced directly by the frontend (not served via backend)",
+        "Images render crisply at intended sizes and do not break layout on common screen sizes"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/hrms-logo.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated static HRMS logo mark image asset at the exact path frontend/public/assets/generated/hrms-logo.dim_512x512.png."
+        },
+        {
+          "path": "frontend/public/assets/generated/hrms-hero.dim_1600x600.png",
+          "operation": "create",
+          "description": "Add the generated static dashboard hero image asset at the exact path frontend/public/assets/generated/hrms-hero.dim_1600x600.png."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginScreen.tsx",
+          "operation": "modify",
+          "description": "Render frontend/public/assets/generated/hrms-logo.dim_512x512.png within the login UI (e.g., header/brand area) with layout-safe sizing so it remains crisp and does not overflow."
+        },
+        {
+          "path": "frontend/src/pages/dashboard/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Render frontend/public/assets/generated/hrms-hero.dim_1600x600.png in the dashboard hero area with responsive behavior to avoid layout breaks on common screen sizes."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Include the frontend/public/assets/generated/hrms-logo.dim_512x512.png in the authenticated app header/sidebar brand area to reinforce consistent branding across screens."
+        }
+      ]
+    }
+  ]
+}

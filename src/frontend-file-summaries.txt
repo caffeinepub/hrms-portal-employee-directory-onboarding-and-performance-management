@@ -1,0 +1,22 @@
+{
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, authentication flow using a properly named RootComponent for hooks compliance, profile setup dialog, and all HRMS module routes.",
+  "frontend/src/hooks/useQueries.ts": "Comprehensive React Query hooks for all backend operations with BigInt values properly converted to strings in query keys to comply with linting rules.",
+  "frontend/src/components/auth/LoginScreen.tsx": "Professional login screen with Internet Identity integration, HRMS logo, and loading states.",
+  "frontend/src/components/auth/ProfileSetupDialog.tsx": "First-time user profile setup dialog that prompts for name and email, preventing modal flash with proper loading state handling.",
+  "frontend/src/components/layout/AppLayout.tsx": "Main application layout with responsive header, sidebar navigation, role-based menu items, user dropdown, and footer with caffeine.ai attribution.",
+  "frontend/src/pages/dashboard/DashboardPage.tsx": "Dashboard homepage with hero image, quick stats cards, onboarding progress tracker, and quick action buttons.",
+  "frontend/src/pages/employees/EmployeeDirectoryPage.tsx": "Admin-only employee directory with search functionality, employee table, and create employee dialog access with Tailwind v3 compliant classes.",
+  "frontend/src/pages/employees/EmployeeDetailPage.tsx": "Employee detail page showing full profile information, employment status, and quick links to related modules.",
+  "frontend/src/pages/employees/MyProfilePage.tsx": "Employee self-service profile page displaying their own employee record with read-only view.",
+  "frontend/src/pages/onboarding/OnboardingEmployeePage.tsx": "Employee onboarding task list with progress tracking, task status updates, and due date management, now properly importing and using TaskStatus enum from backend.",
+  "frontend/src/pages/onboarding/OnboardingAdminPage.tsx": "Admin interface for selecting employees and assigning onboarding task templates.",
+  "frontend/src/pages/performance/GoalsPage.tsx": "Performance goals management page with employee selection (admin), goal listing, progress tracking, and goal creation/update dialogs.",
+  "frontend/src/pages/performance/ReviewsPage.tsx": "Performance review management with cycle creation, review assignment, and self/manager/HR review submission interfaces, now properly using CycleStatus enum from backend.",
+  "frontend/src/components/employees/EmployeeFormDialog.tsx": "Reusable dialog for creating and editing employee records with full form validation, now properly importing and using EmploymentStatus enum from backend.",
+  "frontend/src/components/onboarding/OnboardingTaskEditor.tsx": "Task editor component for admins to create and assign multiple onboarding tasks to employees, now properly using TaskStatus enum from backend.",
+  "frontend/src/components/performance/GoalFormDialog.tsx": "Flexible dialog for both creating new goals (admin) and updating goal progress (employee) with status management, now properly using GoalStatus enum from backend.",
+  "frontend/src/components/performance/ReviewEditors.tsx": "Review submission interface with separate sections for self-review (employee), manager review (admin), and HR review (admin) with completion workflow.",
+  "frontend/src/components/feedback/AccessDenied.tsx": "Access denied screen for unauthorized users attempting to access admin-only pages.",
+  "frontend/src/index.css": "Global styles with emerald/teal OKLCH color system (avoiding blue/purple), supporting both light and dark modes with professional HR portal aesthetics.",
+  "frontend/tailwind.config.js": "Tailwind configuration with Inter font family, extended color tokens, and custom design system for the HRMS portal theme."
+}

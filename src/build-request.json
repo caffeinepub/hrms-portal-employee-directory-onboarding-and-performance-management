@@ -1,0 +1,154 @@
+{
+  "kind": "build_request",
+  "title": "HRMS Portal: Employee Directory, Onboarding, and Performance Management",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Add authentication and role-based access control using Internet Identity with at least two roles: Admin/HR and Employee. Admin/HR can create/update all employee records and configure onboarding/performance items; Employees can view their own profile and complete assigned onboarding tasks and performance actions.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "I want to make a hrms portal which includes employees data, performance, onboarding and more"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can sign in and sign out via Internet Identity",
+        "First-time users are created in the system on first login (at minimum with principal, display name placeholder, role default)",
+        "Access rules are enforced by the backend (e.g., non-admin cannot edit other employees)",
+        "Frontend shows/hides admin actions based on role and handles unauthorized errors gracefully"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement the Employee Data module with persistent storage and CRUD: employee profiles (name, email, department/team, job title, manager, start date, employment status), plus a searchable employee directory and an employee detail page.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "includes employees data"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin/HR can create, edit, and deactivate/reactivate employee records",
+        "Employees can view (at minimum) their own employee profile; Admin/HR can view all profiles",
+        "Employee directory supports search by name/email and filtering by department/status",
+        "Data persists across reloads and canister upgrades within the project lifecycle"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement the Onboarding module with onboarding plans, task assignment, and completion tracking. Support creating onboarding templates (set of tasks), assigning a plan to a new hire, tracking task status (Not started/In progress/Done), due dates, and optional notes/links per task.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "onboarding"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin/HR can create/edit onboarding templates and assign them to employees",
+        "Employees can view their assigned onboarding plan and mark tasks as done (and optionally add notes)",
+        "Onboarding dashboard shows plan progress (e.g., completed vs total tasks)",
+        "Tasks and completion status persist and are consistent between Admin/HR view and employee view"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement the Performance module with goals and performance reviews: allow creating goals for an employee (title, description, start/end dates, status, progress), and a review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "performance"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin/HR can create and manage goals for employees; employees can update progress on their own goals",
+        "Admin/HR can create a review cycle and associate it with employees",
+        "Employees can submit self-review text for an assigned cycle; Admin/HR can record evaluation notes and finalize a cycle",
+        "Performance data persists and is access-controlled (employees cannot view other employees’ reviews)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create an HRMS navigation structure and core screens in the React app: Dashboard, Employees (Directory + Profile), Onboarding (Admin/HR templates + assignments, Employee tasks), Performance (Goals + Reviews). Use React Query for data fetching/caching and show loading/empty/error states for all views.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "portal"
+        ]
+      },
+      "acceptanceCriteria": [
+        "App has a consistent layout with sidebar/top navigation and clear routes/pages for each module",
+        "All lists and detail views display meaningful empty states (e.g., “No employees yet”) and loading indicators",
+        "Mutations (create/update) show success/error feedback and update cached lists without full refresh"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Define a coherent, non-blue/purple visual theme for the HRMS portal (colors, typography, spacing, component styling) and apply it consistently across all screens using Tailwind + shadcn components.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "hrms portal"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A single theme is applied consistently across navigation, pages, forms, and tables",
+        "UI is readable and professional with strong information hierarchy for admin workflows",
+        "No dominant blue/purple theme is used"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Generate and include required static images in the frontend at `frontend/public/assets/generated/` and render them in the app UI (e.g., app header/login and dashboard).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "portal"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Images exist under `frontend/public/assets/generated/` and are referenced directly by the frontend (not served via backend)",
+        "Images render crisply at intended sizes and do not break layout on common screen sizes"
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in `backend/main.mo`",
+    "Do not edit files in `frontend/immutablePaths`; compose existing UI components instead",
+    "Use English for all user-facing UI text"
+  ],
+  "nonGoals": [
+    "Payroll processing, tax calculations, or benefits administration",
+    "Third-party auth providers (only Internet Identity)",
+    "Real-time chat/notifications",
+    "External database or external SaaS HR integrations"
+  ],
+  "imageRequirements": {
+    "required": [
+      "Minimal HRMS logo mark, geometric and professional (hrms-logo.dim_512x512.png)",
+      "Dashboard hero illustration with people/teamwork and HR motif, clean flat style (hrms-hero.dim_1600x600.png)"
+    ],
+    "edits": []
+  }
+}

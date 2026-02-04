@@ -1,0 +1,159 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-authentication-and-role-based-access-control-using-internet-identity-with-at-least-two-roles-admin-hr-and-employee-admin-hr-can-create-update-all-employee-records-and-configure-onboarding-performance-items-employees-can-view-their-own-profile-and-complete-assigned-onboarding-tasks-and-performance-actions",
+      "featureTitle": "Add authentication and role-based access control using Internet Identity with at least two roles: Admin/HR and Employee. Admin/HR can create/update all employee records and configure onboarding/performance items; Employees can view their own profile and complete assigned onboarding tasks and performance actions.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/LoginScreen.tsx",
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
+        "frontend/src/components/feedback/AccessDenied.tsx",
+        "frontend/src/main.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-employee-data-module-with-persistent-storage-and-crud-employee-profiles-name-email-department-team-job-title-manager-start-date-employment-status-plus-a-searchable-employee-directory-and-an-employee-detail-page",
+      "featureTitle": "Implement the Employee Data module with persistent storage and CRUD: employee profiles (name, email, department/team, job title, manager, start date, employment status), plus a searchable employee directory and an employee detail page.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/employees/EmployeeFormDialog.tsx",
+        "frontend/src/pages/employees/EmployeeDetailPage.tsx",
+        "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
+        "frontend/src/pages/employees/MyProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-onboarding-module-with-onboarding-plans-task-assignment-and-completion-tracking-support-creating-onboarding-templates-set-of-tasks-assigning-a-plan-to-a-new-hire-tracking-task-status-not-started-in-progress-done-due-dates-and-optional-notes-links-per-task",
+      "featureTitle": "Implement the Onboarding module with onboarding plans, task assignment, and completion tracking. Support creating onboarding templates (set of tasks), assigning a plan to a new hire, tracking task status (Not started/In progress/Done), due dates, and optional notes/links per task.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/onboarding/OnboardingTaskEditor.tsx",
+        "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
+        "frontend/src/pages/onboarding/OnboardingEmployeePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-performance-module-with-goals-and-performance-reviews-allow-creating-goals-for-an-employee-title-description-start-end-dates-status-progress-and-a-review-cycle-feature-where-admin-hr-can-create-a-review-cycle-and-request-employee-self-review-input-plus-manager-hr-evaluation-notes",
+      "featureTitle": "Implement the Performance module with goals and performance reviews: allow creating goals for an employee (title, description, start/end dates, status, progress), and a review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/performance/GoalFormDialog.tsx",
+        "frontend/src/components/performance/ReviewEditors.tsx",
+        "frontend/src/pages/performance/GoalsPage.tsx",
+        "frontend/src/pages/performance/ReviewsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-hrms-navigation-structure-and-core-screens-in-the-react-app-dashboard-employees-directory-profile-onboarding-admin-hr-templates-assignments-employee-tasks-performance-goals-reviews-use-react-query-for-data-fetching-caching-and-show-loading-empty-error-states-for-all-views",
+      "featureTitle": "Create an HRMS navigation structure and core screens in the React app: Dashboard, Employees (Directory + Profile), Onboarding (Admin/HR templates + assignments, Employee tasks), Performance (Goals + Reviews). Use React Query for data fetching/caching and show loading/empty/error states for all views.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/pages/dashboard/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-define-a-coherent-non-blue-purple-visual-theme-for-the-hrms-portal-colors-typography-spacing-component-styling-and-apply-it-consistently-across-all-screens-using-tailwind-shadcn-components",
+      "featureTitle": "Define a coherent, non-blue/purple visual theme for the HRMS portal (colors, typography, spacing, component styling) and apply it consistently across all screens using Tailwind + shadcn components.",
+      "files": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-generate-and-include-required-static-images-in-the-frontend-at-frontend-public-assets-generated-and-render-them-in-the-app-ui-e-g-app-header-login-and-dashboard",
+      "featureTitle": "Generate and include required static images in the frontend at `frontend/public/assets/generated/` and render them in the app UI (e.g., app header/login and dashboard).",
+      "files": [
+        "frontend/src/components/auth/LoginScreen.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/pages/dashboard/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

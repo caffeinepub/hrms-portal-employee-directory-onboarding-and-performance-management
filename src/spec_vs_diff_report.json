@@ -1,0 +1,126 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-04T04:53:09.043Z",
+  "summary": "Diff adds a Motoko backend actor with types/storage for users, employees, onboarding tasks, goals, performance cycles, and reviews, plus a React frontend with Internet Identity login, role-gated navigation, employee directory/detail/profile pages, onboarding admin assignment UI, and performance goal/review editors. Several BuildRequest requirements are only partially evidenced in the truncated diff (notably persistence/upgrade safety, employee filtering, onboarding templates/plans, and full review-cycle management).",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "First-time users are created in the system on first login (at minimum with principal, display name placeholder, role default).",
+      "reason": "Frontend shows a ProfileSetupDialog when getCallerUserProfile() returns null, but the backend-side auto-provisioning of a user record on first login (and default role assignment) is not evidenced in the provided backend snippet (truncated before any initialization/login hook).",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Employee directory supports search by name/email and filtering by department/status.",
+      "reason": "Directory UI includes a free-text search field, but there is no evidence of department/status filter controls in the directory page, nor explicit backend APIs for department/status filtering in the visible snippet.",
+      "evidence": [
+        "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Data persists across reloads and canister upgrades within the project lifecycle.",
+      "reason": "Backend uses in-memory Maps/vars in the visible portion; there is no evidence of stable variables and preupgrade/postupgrade logic to persist data across canister upgrades in the provided truncated backend file.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Support creating onboarding templates (set of tasks) and assigning a plan to a new hire.",
+      "reason": "UI and hooks evidence direct assignment of onboarding tasks to an employee, but no evidence of reusable onboarding templates or an onboarding plan entity/flow (template creation/editing, template selection, plan assignment).",
+      "evidence": [
+        "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
+        "frontend/src/components/onboarding/OnboardingTaskEditor.tsx (truncated)",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Onboarding dashboard shows plan progress (e.g., completed vs total tasks).",
+      "reason": "Dashboard computes onboarding task completion counts, but this is not clearly an onboarding module dashboard showing plan progress; the onboarding employee page is not included in the diff summary, and no explicit plan-progress UI is evidenced.",
+      "evidence": [
+        "frontend/src/pages/dashboard/DashboardPage.tsx (truncated)",
+        "frontend/src/pages/onboarding/OnboardingEmployeePage (referenced in frontend/src/App.tsx but file content not shown)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes; Admin/HR can finalize a cycle; cycles associated with employees.",
+      "reason": "Types for PerformanceReviewCycle and Review exist and there are review text editors/mutations, but no UI/API evidence is shown for creating/managing review cycles, associating them with employees, or finalizing cycles (backend snippet is truncated before any cycle management methods; frontend pages for reviews are referenced but not shown).",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/components/performance/ReviewEditors.tsx (truncated)",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Performance data persists and is access-controlled (employees cannot view other employees’ reviews).",
+      "reason": "While the backend references an authorization mixin and has owner-check helper for employees, the diff summary does not show concrete access checks specifically preventing employees from reading other employees’ reviews, nor persistence/upgrade handling for performance data.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Generate and include required static images in frontend/public/assets/generated/ (hrms-logo.dim_512x512.png and hrms-hero.dim_1600x600.png).",
+      "reason": "Frontend references the images by path, but the diff summary does not show the image files themselves (they may be among omitted added files). With only the visible diff, presence under the required directory cannot be confirmed.",
+      "evidence": [
+        "frontend/src/components/auth/LoginScreen.tsx",
+        "frontend/src/components/layout/AppLayout.tsx (truncated)",
+        "frontend/src/pages/dashboard/DashboardPage.tsx (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Secret-token based access-control initialization via URL parameter `caffeineAdminToken` and backend method `_initializeAccessControlWithSecret`.",
+      "reason": "BuildRequest specifies role-based access using Internet Identity, but does not request a secret admin token bootstrap mechanism or URL-parameter-based elevation/initialization.",
+      "evidence": [
+        "frontend/src/hooks/useActor.ts"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/LoginScreen.tsx",
+    "frontend/src/components/auth/ProfileSetupDialog.tsx",
+    "frontend/src/components/employees/EmployeeFormDialog.tsx",
+    "frontend/src/components/feedback/AccessDenied.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/components/onboarding/OnboardingTaskEditor.tsx",
+    "frontend/src/components/performance/GoalFormDialog.tsx",
+    "frontend/src/components/performance/ReviewEditors.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/pages/dashboard/DashboardPage.tsx",
+    "frontend/src/pages/employees/EmployeeDetailPage.tsx",
+    "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
+    "frontend/src/pages/employees/MyProfilePage.tsx",
+    "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
+    "frontend/src/pages/onboarding/OnboardingEmployeePage.tsx",
+    "frontend/src/pages/performance/GoalsPage.tsx",
+    "frontend/src/pages/performance/ReviewsPage.tsx",
+    "frontend/src/utils/urlParams.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}

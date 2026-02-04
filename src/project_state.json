@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Build an HRMS portal including employee data management, performance management, onboarding, and related HR modules.",
+  "existing_features": [
+    {
+      "id": "feature-add-authentication-and-role-based-access-control-using-internet-identity-with-at-least-two-roles-admin-hr-and-employee-admin-hr-can-create-update-all-employee-records-and-configure-onboarding-performance-items-employees-can-view-their-own-profile-and-complete-assigned-onboarding-tasks-and-performance-actions",
+      "title": "Add authentication and role-based access control using Internet Identity with at least two roles: Admin/HR and Employee. Admin/HR can create/update all employee records and configure onboarding/performance items; Employees can view their own profile and complete assigned onboarding tasks and performance actions.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-employee-data-module-with-persistent-storage-and-crud-employee-profiles-name-email-department-team-job-title-manager-start-date-employment-status-plus-a-searchable-employee-directory-and-an-employee-detail-page",
+      "title": "Implement the Employee Data module with persistent storage and CRUD: employee profiles (name, email, department/team, job title, manager, start date, employment status), plus a searchable employee directory and an employee detail page.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-onboarding-module-with-onboarding-plans-task-assignment-and-completion-tracking-support-creating-onboarding-templates-set-of-tasks-assigning-a-plan-to-a-new-hire-tracking-task-status-not-started-in-progress-done-due-dates-and-optional-notes-links-per-task",
+      "title": "Implement the Onboarding module with onboarding plans, task assignment, and completion tracking. Support creating onboarding templates (set of tasks), assigning a plan to a new hire, tracking task status (Not started/In progress/Done), due dates, and optional notes/links per task.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-performance-module-with-goals-and-performance-reviews-allow-creating-goals-for-an-employee-title-description-start-end-dates-status-progress-and-a-review-cycle-feature-where-admin-hr-can-create-a-review-cycle-and-request-employee-self-review-input-plus-manager-hr-evaluation-notes",
+      "title": "Implement the Performance module with goals and performance reviews: allow creating goals for an employee (title, description, start/end dates, status, progress), and a review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-hrms-navigation-structure-and-core-screens-in-the-react-app-dashboard-employees-directory-profile-onboarding-admin-hr-templates-assignments-employee-tasks-performance-goals-reviews-use-react-query-for-data-fetching-caching-and-show-loading-empty-error-states-for-all-views",
+      "title": "Create an HRMS navigation structure and core screens in the React app: Dashboard, Employees (Directory + Profile), Onboarding (Admin/HR templates + assignments, Employee tasks), Performance (Goals + Reviews). Use React Query for data fetching/caching and show loading/empty/error states for all views.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-define-a-coherent-non-blue-purple-visual-theme-for-the-hrms-portal-colors-typography-spacing-component-styling-and-apply-it-consistently-across-all-screens-using-tailwind-shadcn-components",
+      "title": "Define a coherent, non-blue/purple visual theme for the HRMS portal (colors, typography, spacing, component styling) and apply it consistently across all screens using Tailwind + shadcn components.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-include-required-static-images-in-the-frontend-at-frontend-public-assets-generated-and-render-them-in-the-app-ui-e-g-app-header-login-and-dashboard",
+      "title": "Generate and include required static images in the frontend at `frontend/public/assets/generated/` and render them in the app UI (e.g., app header/login and dashboard).",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Employee data management module (employee profiles, records, directory)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Performance management module (goals, reviews, evaluations)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Onboarding module (new hire workflows, tasks, documentation)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Additional HRMS features beyond core modules (\"and more\")",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Minimal HRMS logo mark, geometric and professional (hrms-logo.dim_512x512.png)\n- Dashboard hero illustration with people/teamwork and HR motif, clean flat style (hrms-hero.dim_1600x600.png)",
+  "generatedImages": [
+    {
+      "filename": "hrms-logo.dim_512x512.png",
+      "description": "Minimal HRMS logo mark, geometric and professional",
+      "targetWidth": 512,
+      "targetHeight": 512
+    },
+    {
+      "filename": "hrms-hero.dim_1600x600.png",
+      "description": "Dashboard hero illustration with people/teamwork and HR motif, clean flat style",
+      "targetWidth": 1600,
+      "targetHeight": 600
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "HRMS Portal: Employee Directory, Onboarding, and Performance Management",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

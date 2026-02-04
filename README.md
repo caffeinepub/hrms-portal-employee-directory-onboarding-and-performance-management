@@ -1,2 +1,3 @@
-# hrms-portal-employee-directory-onboarding-and-performance-management
-Exported from Caffeine project: HRMS Portal: Employee Directory, Onboarding, and Performance Management
+## HRMS Portal: Employee Directory, Onboarding, and Performance Management
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
