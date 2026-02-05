@@ -1,126 +1,85 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T04:53:09.043Z",
-  "summary": "Diff adds a Motoko backend actor with types/storage for users, employees, onboarding tasks, goals, performance cycles, and reviews, plus a React frontend with Internet Identity login, role-gated navigation, employee directory/detail/profile pages, onboarding admin assignment UI, and performance goal/review editors. Several BuildRequest requirements are only partially evidenced in the truncated diff (notably persistence/upgrade safety, employee filtering, onboarding templates/plans, and full review-cycle management).",
+  "generatedAt": "2026-02-05T17:03:44.214Z",
+  "summary": "Diff adds an EmployeeProfile schema migration with new externalEmployeeId field and updates several frontend pages/hooks. However, backend seeding for Jayesh and appraisal data is not evidenced, onboarding questions list cannot be verified as the exact provided 15, and the onboarding questionnaire page still invokes admin-only employee search for non-admin users. The diff also violates the single-actor Motoko constraint by introducing backend/migration.mo.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "First-time users are created in the system on first login (at minimum with principal, display name placeholder, role default).",
-      "reason": "Frontend shows a ProfileSetupDialog when getCallerUserProfile() returns null, but the backend-side auto-provisioning of a user record on first login (and default role assignment) is not evidenced in the provided backend snippet (truncated before any initialization/login hook).",
+      "requirement": "Add backend seed logic to guarantee that an employee profile for \"Jayesh Deshmukh\" exists and can be auto-resolved after sign-in, so getMyEmployeeId() returns Jayesh’s employeeId and the seed is idempotent.",
+      "reason": "The diff shows schema changes and frontend query invalidation, but does not provide evidence of backend logic that (a) creates a default employee when normalized name \"jayesh deshmukh\" is missing, (b) links the signed-in principal/name to that employee for getMyEmployeeId(), or (c) ensures idempotent seeding.",
       "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/auth/ProfileSetupDialog.tsx",
-        "backend/main.mo (truncated)"
+        "backend/main.mo",
+        "frontend/src/hooks/useQueries.ts"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Employee directory supports search by name/email and filtering by department/status.",
-      "reason": "Directory UI includes a free-text search field, but there is no evidence of department/status filter controls in the directory page, nor explicit backend APIs for department/status filtering in the visible snippet.",
+      "requirement": "Ensure the seeded Jayesh Deshmukh employee record includes external employee ID \"EMP1024\" and frontend profile views display it.",
+      "reason": "Backend schema includes externalEmployeeId and a migration module exists, but the diff summary does not show any seed creation for Jayesh with externalEmployeeId=\"EMP1024\", and the provided snippets of MyProfile/EmployeeDetail do not include a rendered external employee ID field/value.",
       "evidence": [
-        "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
-        "frontend/src/hooks/useQueries.ts (truncated)",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Data persists across reloads and canister upgrades within the project lifecycle.",
-      "reason": "Backend uses in-memory Maps/vars in the visible portion; there is no evidence of stable variables and preupgrade/postupgrade logic to persist data across canister upgrades in the provided truncated backend file.",
-      "evidence": [
-        "backend/main.mo (truncated)"
+        "backend/main.mo",
+        "backend/migration.mo",
+        "frontend/src/pages/employees/MyProfilePage.tsx",
+        "frontend/src/pages/employees/EmployeeDetailPage.tsx"
       ]
     },
     {
       "id": "REQ-3",
-      "requirement": "Support creating onboarding templates (set of tasks) and assigning a plan to a new hire.",
-      "reason": "UI and hooks evidence direct assignment of onboarding tasks to an employee, but no evidence of reusable onboarding templates or an onboarding plan entity/flow (template creation/editing, template selection, plan assignment).",
+      "requirement": "Seed Jayesh Deshmukh’s appraisal details (April 2025 – March 2026, specified fields) into backend idempotently and ensure Appraisal UI loads and displays it.",
+      "reason": "The backend seeding of appraisalDetails for Jayesh is not evidenced. The frontend AppraisalPage includes a client-side \"create sample appraisal\" flow via saveMutation, which is not equivalent to backend idempotent seeding and does not guarantee data exists on load.",
       "evidence": [
-        "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
-        "frontend/src/components/onboarding/OnboardingTaskEditor.tsx (truncated)",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Onboarding dashboard shows plan progress (e.g., completed vs total tasks).",
-      "reason": "Dashboard computes onboarding task completion counts, but this is not clearly an onboarding module dashboard showing plan progress; the onboarding employee page is not included in the diff summary, and no explicit plan-progress UI is evidenced.",
-      "evidence": [
-        "frontend/src/pages/dashboard/DashboardPage.tsx (truncated)",
-        "frontend/src/pages/onboarding/OnboardingEmployeePage (referenced in frontend/src/App.tsx but file content not shown)"
+        "backend/main.mo",
+        "frontend/src/pages/performance/AppraisalPage.tsx"
       ]
     },
     {
       "id": "REQ-4",
-      "requirement": "Review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes; Admin/HR can finalize a cycle; cycles associated with employees.",
-      "reason": "Types for PerformanceReviewCycle and Review exist and there are review text editors/mutations, but no UI/API evidence is shown for creating/managing review cycles, associating them with employees, or finalizing cycles (backend snippet is truncated before any cycle management methods; frontend pages for reviews are referenced but not shown).",
+      "requirement": "Replace backend onboarding questionnaire questions with the exact provided list of 15 questions in order, and ensure non-admin questionnaire loading does not call admin-only employee search APIs.",
+      "reason": "The backend onboardingQuestions list is shown only partially and cannot be verified as the exact provided 15 questions. Additionally, OnboardingQuestionnairePage calls useSearchEmployees('', { adminOnly: true }) unconditionally (even for non-admin), violating the non-admin loading requirement.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/components/performance/ReviewEditors.tsx (truncated)",
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Performance data persists and is access-controlled (employees cannot view other employees’ reviews).",
-      "reason": "While the backend references an authorization mixin and has owner-check helper for employees, the diff summary does not show concrete access checks specifically preventing employees from reading other employees’ reviews, nor persistence/upgrade handling for performance data.",
-      "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "requirement": "Generate and include required static images in frontend/public/assets/generated/ (hrms-logo.dim_512x512.png and hrms-hero.dim_1600x600.png).",
-      "reason": "Frontend references the images by path, but the diff summary does not show the image files themselves (they may be among omitted added files). With only the visible diff, presence under the required directory cannot be confirmed.",
-      "evidence": [
-        "frontend/src/components/auth/LoginScreen.tsx",
-        "frontend/src/components/layout/AppLayout.tsx (truncated)",
-        "frontend/src/pages/dashboard/DashboardPage.tsx (truncated)"
+        "backend/main.mo",
+        "frontend/src/pages/onboarding/OnboardingQuestionnairePage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Secret-token based access-control initialization via URL parameter `caffeineAdminToken` and backend method `_initializeAccessControlWithSecret`.",
-      "reason": "BuildRequest specifies role-based access using Internet Identity, but does not request a secret admin token bootstrap mechanism or URL-parameter-based elevation/initialization.",
+      "description": "Introduced a separate Motoko migration module (backend/migration.mo) and imported it from backend/main.mo.",
+      "reason": "BuildRequest constraint requires the backend to remain a single Motoko actor with all logic in backend/main.mo; adding backend/migration.mo moves logic outside main.mo.",
       "evidence": [
-        "frontend/src/hooks/useActor.ts"
+        "backend/migration.mo",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Global search bar in header with deep-link support across pages.",
+      "reason": "Not requested in any requirement or acceptance criteria; appears as additional functionality in the change summary.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "ThemeProvider configured to force light theme and various UI theming/treatments (readable-surface/readable-nav) plus footer attribution changes.",
+      "reason": "Not requested; BuildRequest focuses on seeding data and fixing onboarding questionnaire loading, with UI text constraints only.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.68,
   "changed_files": [
-    "all_files_summary.json",
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.css",
-    "frontend/index.html",
-    "frontend/src/App.tsx",
-    "frontend/src/components/auth/LoginScreen.tsx",
-    "frontend/src/components/auth/ProfileSetupDialog.tsx",
-    "frontend/src/components/employees/EmployeeFormDialog.tsx",
-    "frontend/src/components/feedback/AccessDenied.tsx",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/onboarding/OnboardingTaskEditor.tsx",
-    "frontend/src/components/performance/GoalFormDialog.tsx",
-    "frontend/src/components/performance/ReviewEditors.tsx",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/main.tsx",
-    "frontend/src/pages/dashboard/DashboardPage.tsx",
     "frontend/src/pages/employees/EmployeeDetailPage.tsx",
     "frontend/src/pages/employees/EmployeeDirectoryPage.tsx",
     "frontend/src/pages/employees/MyProfilePage.tsx",
     "frontend/src/pages/onboarding/OnboardingAdminPage.tsx",
-    "frontend/src/pages/onboarding/OnboardingEmployeePage.tsx",
+    "frontend/src/pages/onboarding/OnboardingQuestionnairePage.tsx",
+    "frontend/src/pages/performance/AppraisalPage.tsx",
     "frontend/src/pages/performance/GoalsPage.tsx",
-    "frontend/src/pages/performance/ReviewsPage.tsx",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
     "project_state.json"
   ]
 }

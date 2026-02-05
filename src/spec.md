@@ -1,15 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Build an HRMS portal with Internet Identity authentication, role-based access, and core modules for employee data, onboarding, and performance management.
+**Goal:** Ensure Jayesh Deshmukh’s employee profile and appraisal data are available after sign-in, and fix the onboarding questionnaire so it loads reliably for non-admin users.
 
 **Planned changes:**
-- Add Internet Identity sign-in/sign-out and backend-enforced role-based access control for Admin/HR vs Employee, including first-login user creation.
-- Implement persistent Employee Data storage with CRUD, searchable/filterable directory, and employee detail/profile views with role-based visibility.
-- Implement Onboarding with templates, assignment to employees, task status tracking (Not started/In progress/Done), due dates, and optional notes/links.
-- Implement Performance with employee goals (including progress updates) and review cycles (self-review input, admin/HR evaluation notes, finalize), with access control.
-- Create core React screens and navigation (Dashboard, Employees, Onboarding, Performance) using React Query and consistent loading/empty/error states.
-- Apply a coherent non-blue/purple visual theme using Tailwind + shadcn components across the app.
-- Add required static images under `frontend/public/assets/generated/` and render them in appropriate UI locations (e.g., header/login and dashboard).
+- Add idempotent backend seed logic to create/link an employee profile for “Jayesh Deshmukh” so auto-resolution after sign-in returns a valid employeeId and prevents an empty My Profile page.
+- Extend the employee profile model to store an external Employee ID field and seed Jayesh’s value as “EMP1024”, including a safe schema upgrade/migration so existing records remain readable.
+- Seed Jayesh Deshmukh’s performance appraisal record for April 2025 – March 2026 (including the provided ratings, criteria list, and feedback list) and ensure the Appraisal UI loads and displays it for Jayesh.
+- Replace onboarding questionnaire questions with the exact provided ordered list of 15 questions, and update the onboarding questionnaire flow to avoid admin-only dependencies for non-admin users and to show a clear English error/empty state instead of infinite loading when prerequisites are missing.
 
-**User-visible outcome:** Users can log in with Internet Identity; Admin/HR can manage employees, onboarding, and performance reviews/goals, while employees can view their own profile, complete onboarding tasks, and update their own goal progress within a themed HRMS portal UI.
+**User-visible outcome:** Logging in as “Jayesh Deshmukh” shows a populated profile (including external Employee ID “EMP1024”), the Performance → Appraisal page displays Jayesh’s seeded annual appraisal details, and the onboarding questionnaire reliably loads the 15 questions for non-admin users with clear error handling when needed.

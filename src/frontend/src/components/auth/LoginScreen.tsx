@@ -8,8 +8,8 @@ export default function LoginScreen() {
   const isLoggingIn = loginStatus === 'logging-in';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl readable-surface">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <img
@@ -32,7 +32,7 @@ export default function LoginScreen() {
           >
             {isLoggingIn ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
                 Signing in...
               </>
             ) : (

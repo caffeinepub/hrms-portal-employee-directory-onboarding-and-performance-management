@@ -46,8 +46,10 @@ export const OnboardingTask = IDL.Record({
   'links' : IDL.Text,
   'notes' : IDL.Text,
 });
+export const ExternalEmployeeId = IDL.Text;
 export const CreateEmployeeProfileArgs = IDL.Record({
   'manager' : IDL.Text,
+  'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
   'name' : IDL.Text,
   'email' : IDL.Text,
   'jobTitle' : IDL.Text,
@@ -69,6 +71,26 @@ export const PerformanceReviewCycle = IDL.Record({
   'startDate' : Time,
 });
 export const ReviewId = IDL.Nat;
+export const AppraisalDetails = IDL.Record({
+  'employeeName' : IDL.Text,
+  'teamwork' : IDL.Text,
+  'overallRatingPercent' : IDL.Nat,
+  'createdAt' : Time,
+  'timeliness' : IDL.Text,
+  'feedback' : IDL.Vec(IDL.Text),
+  'qualityOfWork' : IDL.Text,
+  'appraisalType' : IDL.Text,
+  'communicationSkills' : IDL.Text,
+  'appraisalPeriod' : IDL.Text,
+  'jobTitle' : IDL.Text,
+  'employeeId' : EmployeeId,
+  'incrementPercent' : IDL.Nat,
+  'grade' : IDL.Text,
+  'workCompletionPercent' : IDL.Nat,
+  'criteria' : IDL.Vec(IDL.Text),
+  'department' : IDL.Text,
+  'reasonForIncrement' : IDL.Text,
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -82,6 +104,7 @@ export const EmployeeProfile = IDL.Record({
   'id' : EmployeeId,
   'status' : EmploymentStatus,
   'manager' : IDL.Text,
+  'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
   'name' : IDL.Text,
   'createdBy' : IDL.Principal,
   'performanceCycleId' : IDL.Opt(IDL.Nat),
@@ -105,9 +128,35 @@ export const Review = IDL.Record({
   'employeeId' : EmployeeId,
   'cycleId' : CycleId,
 });
+export const OnboardingResponse = IDL.Record({
+  'response' : IDL.Text,
+  'timestamp' : Time,
+  'questionId' : IDL.Nat,
+});
+export const QuestionnaireResponse = IDL.Record({
+  'responses' : IDL.Vec(OnboardingResponse),
+  'submittedAt' : Time,
+  'submittedBy' : IDL.Principal,
+  'employeeId' : EmployeeId,
+});
+export const SearchResult = IDL.Variant({
+  'review' : IDL.Record({ 'review' : Review, 'employeeId' : EmployeeId }),
+  'onboardingTask' : IDL.Record({
+    'task' : OnboardingTask,
+    'employeeId' : EmployeeId,
+  }),
+  'goal' : IDL.Record({ 'goal' : Goal, 'employeeId' : EmployeeId }),
+  'questionnaireResponse' : IDL.Record({
+    'employeeId' : EmployeeId,
+    'response' : QuestionnaireResponse,
+  }),
+  'employee' : EmployeeProfile,
+  'appraisal' : AppraisalDetails,
+});
 export const UpdateEmployeeProfileArgs = IDL.Record({
   'status' : IDL.Opt(EmploymentStatus),
   'manager' : IDL.Opt(IDL.Text),
+  'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
   'name' : IDL.Opt(IDL.Text),
   'email' : IDL.Opt(IDL.Text),
   'jobTitle' : IDL.Opt(IDL.Text),
@@ -131,9 +180,15 @@ export const idlService = IDL.Service({
     ),
   'createPerformanceCycle' : IDL.Func([PerformanceReviewCycle], [CycleId], []),
   'createReview' : IDL.Func([EmployeeId, CycleId], [ReviewId], []),
+  'ensureUserProfile' : IDL.Func([IDL.Text, IDL.Text], [IDL.Principal], []),
   'getAllPerformanceCycles' : IDL.Func(
       [],
       [IDL.Vec(PerformanceReviewCycle)],
+      ['query'],
+    ),
+  'getAppraisalDetails' : IDL.Func(
+      [EmployeeId],
+      [IDL.Opt(AppraisalDetails)],
       ['query'],
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -149,7 +204,8 @@ export const idlService = IDL.Service({
       [IDL.Opt(IDL.Vec(Review))],
       ['query'],
     ),
-  'getMyEmployeeId' : IDL.Func([], [IDL.Opt(EmployeeId)], ['query']),
+  'getMyEmployeeId' : IDL.Func([], [IDL.Opt(EmployeeId)], []),
+  'getOnboardingQuestions' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getOnboardingTasks' : IDL.Func(
       [EmployeeId],
       [IDL.Opt(IDL.Vec(OnboardingTask))],
@@ -160,13 +216,25 @@ export const idlService = IDL.Service({
       [IDL.Opt(PerformanceReviewCycle)],
       ['query'],
     ),
+  'getQuestionnaireResponses' : IDL.Func(
+      [EmployeeId],
+      [IDL.Vec(QuestionnaireResponse)],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'globalSearch' : IDL.Func([IDL.Text], [IDL.Vec(SearchResult)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveAppraisalDetails' : IDL.Func([AppraisalDetails], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'searchAppraisalDetails' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(AppraisalDetails)],
+      ['query'],
+    ),
   'searchEmployees' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(EmployeeProfile)],
@@ -176,6 +244,11 @@ export const idlService = IDL.Service({
   'submitManagerReview' : IDL.Func(
       [EmployeeId, ReviewId, IDL.Text],
       [IDL.Bool],
+      [],
+    ),
+  'submitQuestionnaireResponses' : IDL.Func(
+      [EmployeeId, IDL.Vec(OnboardingResponse)],
+      [],
       [],
     ),
   'submitSelfReview' : IDL.Func(
@@ -241,8 +314,10 @@ export const idlFactory = ({ IDL }) => {
     'links' : IDL.Text,
     'notes' : IDL.Text,
   });
+  const ExternalEmployeeId = IDL.Text;
   const CreateEmployeeProfileArgs = IDL.Record({
     'manager' : IDL.Text,
+    'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
     'name' : IDL.Text,
     'email' : IDL.Text,
     'jobTitle' : IDL.Text,
@@ -264,6 +339,26 @@ export const idlFactory = ({ IDL }) => {
     'startDate' : Time,
   });
   const ReviewId = IDL.Nat;
+  const AppraisalDetails = IDL.Record({
+    'employeeName' : IDL.Text,
+    'teamwork' : IDL.Text,
+    'overallRatingPercent' : IDL.Nat,
+    'createdAt' : Time,
+    'timeliness' : IDL.Text,
+    'feedback' : IDL.Vec(IDL.Text),
+    'qualityOfWork' : IDL.Text,
+    'appraisalType' : IDL.Text,
+    'communicationSkills' : IDL.Text,
+    'appraisalPeriod' : IDL.Text,
+    'jobTitle' : IDL.Text,
+    'employeeId' : EmployeeId,
+    'incrementPercent' : IDL.Nat,
+    'grade' : IDL.Text,
+    'workCompletionPercent' : IDL.Nat,
+    'criteria' : IDL.Vec(IDL.Text),
+    'department' : IDL.Text,
+    'reasonForIncrement' : IDL.Text,
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
@@ -277,6 +372,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : EmployeeId,
     'status' : EmploymentStatus,
     'manager' : IDL.Text,
+    'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
     'name' : IDL.Text,
     'createdBy' : IDL.Principal,
     'performanceCycleId' : IDL.Opt(IDL.Nat),
@@ -300,9 +396,35 @@ export const idlFactory = ({ IDL }) => {
     'employeeId' : EmployeeId,
     'cycleId' : CycleId,
   });
+  const OnboardingResponse = IDL.Record({
+    'response' : IDL.Text,
+    'timestamp' : Time,
+    'questionId' : IDL.Nat,
+  });
+  const QuestionnaireResponse = IDL.Record({
+    'responses' : IDL.Vec(OnboardingResponse),
+    'submittedAt' : Time,
+    'submittedBy' : IDL.Principal,
+    'employeeId' : EmployeeId,
+  });
+  const SearchResult = IDL.Variant({
+    'review' : IDL.Record({ 'review' : Review, 'employeeId' : EmployeeId }),
+    'onboardingTask' : IDL.Record({
+      'task' : OnboardingTask,
+      'employeeId' : EmployeeId,
+    }),
+    'goal' : IDL.Record({ 'goal' : Goal, 'employeeId' : EmployeeId }),
+    'questionnaireResponse' : IDL.Record({
+      'employeeId' : EmployeeId,
+      'response' : QuestionnaireResponse,
+    }),
+    'employee' : EmployeeProfile,
+    'appraisal' : AppraisalDetails,
+  });
   const UpdateEmployeeProfileArgs = IDL.Record({
     'status' : IDL.Opt(EmploymentStatus),
     'manager' : IDL.Opt(IDL.Text),
+    'externalEmployeeId' : IDL.Opt(ExternalEmployeeId),
     'name' : IDL.Opt(IDL.Text),
     'email' : IDL.Opt(IDL.Text),
     'jobTitle' : IDL.Opt(IDL.Text),
@@ -330,9 +452,15 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'createReview' : IDL.Func([EmployeeId, CycleId], [ReviewId], []),
+    'ensureUserProfile' : IDL.Func([IDL.Text, IDL.Text], [IDL.Principal], []),
     'getAllPerformanceCycles' : IDL.Func(
         [],
         [IDL.Vec(PerformanceReviewCycle)],
+        ['query'],
+      ),
+    'getAppraisalDetails' : IDL.Func(
+        [EmployeeId],
+        [IDL.Opt(AppraisalDetails)],
         ['query'],
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -352,7 +480,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Vec(Review))],
         ['query'],
       ),
-    'getMyEmployeeId' : IDL.Func([], [IDL.Opt(EmployeeId)], ['query']),
+    'getMyEmployeeId' : IDL.Func([], [IDL.Opt(EmployeeId)], []),
+    'getOnboardingQuestions' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getOnboardingTasks' : IDL.Func(
         [EmployeeId],
         [IDL.Opt(IDL.Vec(OnboardingTask))],
@@ -363,13 +492,25 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(PerformanceReviewCycle)],
         ['query'],
       ),
+    'getQuestionnaireResponses' : IDL.Func(
+        [EmployeeId],
+        [IDL.Vec(QuestionnaireResponse)],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'globalSearch' : IDL.Func([IDL.Text], [IDL.Vec(SearchResult)], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveAppraisalDetails' : IDL.Func([AppraisalDetails], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'searchAppraisalDetails' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(AppraisalDetails)],
+        ['query'],
+      ),
     'searchEmployees' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(EmployeeProfile)],
@@ -383,6 +524,11 @@ export const idlFactory = ({ IDL }) => {
     'submitManagerReview' : IDL.Func(
         [EmployeeId, ReviewId, IDL.Text],
         [IDL.Bool],
+        [],
+      ),
+    'submitQuestionnaireResponses' : IDL.Func(
+        [EmployeeId, IDL.Vec(OnboardingResponse)],
+        [],
         [],
       ),
     'submitSelfReview' : IDL.Func(

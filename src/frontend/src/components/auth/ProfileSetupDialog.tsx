@@ -1,19 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSaveCallerUserProfile } from '../../hooks/useQueries';
 
-export default function ProfileSetupDialog() {
+interface ProfileSetupDialogProps {
+  suggestedName?: string;
+}
+
+export default function ProfileSetupDialog({ suggestedName }: ProfileSetupDialogProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const saveProfile = useSaveCallerUserProfile();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (suggestedName && !name) {
+      setName(suggestedName);
+    }
+  }, [suggestedName]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      saveProfile.mutate({
+      await saveProfile.mutateAsync({
         name: name.trim(),
         email: email.trim(),
         employeeId: undefined,
@@ -51,7 +61,7 @@ export default function ProfileSetupDialog() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={saveProfile.isPending || !name.trim()}>
-            {saveProfile.isPending ? 'Saving...' : 'Continue'}
+            {saveProfile.isPending ? 'Setting up your profile...' : 'Continue'}
           </Button>
         </form>
       </DialogContent>

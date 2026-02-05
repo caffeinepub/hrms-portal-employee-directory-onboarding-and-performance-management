@@ -10,8 +10,29 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AppraisalDetails {
+  'employeeName' : string,
+  'teamwork' : string,
+  'overallRatingPercent' : bigint,
+  'createdAt' : Time,
+  'timeliness' : string,
+  'feedback' : Array<string>,
+  'qualityOfWork' : string,
+  'appraisalType' : string,
+  'communicationSkills' : string,
+  'appraisalPeriod' : string,
+  'jobTitle' : string,
+  'employeeId' : EmployeeId,
+  'incrementPercent' : bigint,
+  'grade' : string,
+  'workCompletionPercent' : bigint,
+  'criteria' : Array<string>,
+  'department' : string,
+  'reasonForIncrement' : string,
+}
 export interface CreateEmployeeProfileArgs {
   'manager' : string,
+  'externalEmployeeId' : [] | [ExternalEmployeeId],
   'name' : string,
   'email' : string,
   'jobTitle' : string,
@@ -28,6 +49,7 @@ export interface EmployeeProfile {
   'id' : EmployeeId,
   'status' : EmploymentStatus,
   'manager' : string,
+  'externalEmployeeId' : [] | [ExternalEmployeeId],
   'name' : string,
   'createdBy' : Principal,
   'performanceCycleId' : [] | [bigint],
@@ -40,6 +62,7 @@ export interface EmployeeProfile {
 }
 export type EmploymentStatus = { 'active' : null } |
   { 'terminated' : null };
+export type ExternalEmployeeId = string;
 export interface Goal {
   'id' : GoalId,
   'status' : GoalStatus,
@@ -54,6 +77,11 @@ export type GoalStatus = { 'notStarted' : null } |
   { 'completed' : null } |
   { 'inProgress' : null } |
   { 'failed' : null };
+export interface OnboardingResponse {
+  'response' : string,
+  'timestamp' : Time,
+  'questionId' : bigint,
+}
 export interface OnboardingTask {
   'id' : TaskId,
   'status' : TaskStatus,
@@ -70,6 +98,12 @@ export interface PerformanceReviewCycle {
   'endDate' : Time,
   'startDate' : Time,
 }
+export interface QuestionnaireResponse {
+  'responses' : Array<OnboardingResponse>,
+  'submittedAt' : Time,
+  'submittedBy' : Principal,
+  'employeeId' : EmployeeId,
+}
 export interface Review {
   'id' : ReviewId,
   'hrReview' : string,
@@ -82,6 +116,21 @@ export interface Review {
 export type ReviewId = bigint;
 export type ReviewStatus = { 'pending' : null } |
   { 'completed' : null };
+export type SearchResult = {
+    'review' : { 'review' : Review, 'employeeId' : EmployeeId }
+  } |
+  {
+    'onboardingTask' : { 'task' : OnboardingTask, 'employeeId' : EmployeeId }
+  } |
+  { 'goal' : { 'goal' : Goal, 'employeeId' : EmployeeId } } |
+  {
+    'questionnaireResponse' : {
+      'employeeId' : EmployeeId,
+      'response' : QuestionnaireResponse,
+    }
+  } |
+  { 'employee' : EmployeeProfile } |
+  { 'appraisal' : AppraisalDetails };
 export type TaskId = bigint;
 export type TaskStatus = { 'notStarted' : null } |
   { 'done' : null } |
@@ -90,6 +139,7 @@ export type Time = bigint;
 export interface UpdateEmployeeProfileArgs {
   'status' : [] | [EmploymentStatus],
   'manager' : [] | [string],
+  'externalEmployeeId' : [] | [ExternalEmployeeId],
   'name' : [] | [string],
   'email' : [] | [string],
   'jobTitle' : [] | [string],
@@ -118,24 +168,38 @@ export interface _SERVICE {
   >,
   'createPerformanceCycle' : ActorMethod<[PerformanceReviewCycle], CycleId>,
   'createReview' : ActorMethod<[EmployeeId, CycleId], ReviewId>,
+  'ensureUserProfile' : ActorMethod<[string, string], Principal>,
   'getAllPerformanceCycles' : ActorMethod<[], Array<PerformanceReviewCycle>>,
+  'getAppraisalDetails' : ActorMethod<[EmployeeId], [] | [AppraisalDetails]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getEmployee' : ActorMethod<[EmployeeId], [] | [EmployeeProfile]>,
   'getEmployeeGoals' : ActorMethod<[EmployeeId], [] | [Array<Goal>]>,
   'getEmployeeReviews' : ActorMethod<[EmployeeId], [] | [Array<Review>]>,
   'getMyEmployeeId' : ActorMethod<[], [] | [EmployeeId]>,
+  'getOnboardingQuestions' : ActorMethod<[], Array<string>>,
   'getOnboardingTasks' : ActorMethod<
     [EmployeeId],
     [] | [Array<OnboardingTask>]
   >,
   'getPerformanceCycle' : ActorMethod<[CycleId], [] | [PerformanceReviewCycle]>,
+  'getQuestionnaireResponses' : ActorMethod<
+    [EmployeeId],
+    Array<QuestionnaireResponse>
+  >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'globalSearch' : ActorMethod<[string], Array<SearchResult>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveAppraisalDetails' : ActorMethod<[AppraisalDetails], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'searchAppraisalDetails' : ActorMethod<[string], Array<AppraisalDetails>>,
   'searchEmployees' : ActorMethod<[string], Array<EmployeeProfile>>,
   'submitHRReview' : ActorMethod<[EmployeeId, ReviewId, string], boolean>,
   'submitManagerReview' : ActorMethod<[EmployeeId, ReviewId, string], boolean>,
+  'submitQuestionnaireResponses' : ActorMethod<
+    [EmployeeId, Array<OnboardingResponse>],
+    undefined
+  >,
   'submitSelfReview' : ActorMethod<[EmployeeId, ReviewId, string], boolean>,
   'updateEmployee' : ActorMethod<
     [EmployeeId, UpdateEmployeeProfileArgs],

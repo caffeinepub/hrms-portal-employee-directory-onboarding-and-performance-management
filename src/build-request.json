@@ -1,154 +1,116 @@
 {
   "kind": "build_request",
-  "title": "HRMS Portal: Employee Directory, Onboarding, and Performance Management",
-  "priority": "normal",
+  "title": "Seed Jayesh Deshmukh employee + appraisal data and fix onboarding questionnaire loading",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add authentication and role-based access control using Internet Identity with at least two roles: Admin/HR and Employee. Admin/HR can create/update all employee records and configure onboarding/performance items; Employees can view their own profile and complete assigned onboarding tasks and performance actions.",
-      "target": "both",
+      "text": "Add backend seed logic to guarantee that an employee profile for \"Jayesh Deshmukh\" exists and can be auto-resolved after sign-in, so that logging in with the access-gate name \"Jayesh Deshmukh\" no longer results in an empty profile page.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "I want to make a hrms portal which includes employees data, performance, onboarding and more"
+          "I will give u the data plsss  add the data",
+          "Onboarding question showing loading and the employee data of jayesh deshmukh is not there",
+          "Empty profile page"
         ]
       },
       "acceptanceCriteria": [
-        "Users can sign in and sign out via Internet Identity",
-        "First-time users are created in the system on first login (at minimum with principal, display name placeholder, role default)",
-        "Access rules are enforced by the backend (e.g., non-admin cannot edit other employees)",
-        "Frontend shows/hides admin actions based on role and handles unauthorized errors gracefully"
+        "If no employee record exists for the normalized name \"jayesh deshmukh\", the backend creates a default employee profile for Jayesh Deshmukh.",
+        "After sign-in (with stored name \"Jayesh Deshmukh\"), calling getMyEmployeeId() returns Jayesh’s employeeId (auto-linking works) and My Profile no longer shows the empty-state card.",
+        "The seed operation is idempotent (repeated calls do not create duplicates)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement the Employee Data module with persistent storage and CRUD: employee profiles (name, email, department/team, job title, manager, start date, employment status), plus a searchable employee directory and an employee detail page.",
+      "text": "Store and display the provided external Employee ID \"EMP1024\" as part of the employee profile data model, and ensure it is included in the seeded Jayesh Deshmukh employee record.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "includes employees data"
+          "Employee ID: EMP1024"
         ]
       },
       "acceptanceCriteria": [
-        "Admin/HR can create, edit, and deactivate/reactivate employee records",
-        "Employees can view (at minimum) their own employee profile; Admin/HR can view all profiles",
-        "Employee directory supports search by name/email and filtering by department/status",
-        "Data persists across reloads and canister upgrades within the project lifecycle"
+        "Backend EmployeeProfile includes a dedicated text field for the external employee identifier (e.g., \"EMP1024\").",
+        "The seeded Jayesh Deshmukh employee record has external employee ID set to \"EMP1024\".",
+        "Frontend employee profile views (My Profile and Employee Detail) display the external employee ID value \"EMP1024\" (in English) when present.",
+        "If the app is upgraded from existing state, persisted employee records remain readable after the schema update (add/upgrade migration as needed per the project’s conditional migration policy)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Implement the Onboarding module with onboarding plans, task assignment, and completion tracking. Support creating onboarding templates (set of tasks), assigning a plan to a new hire, tracking task status (Not started/In progress/Done), due dates, and optional notes/links per task.",
+      "text": "Seed the provided performance appraisal details for Jayesh Deshmukh (appraisal period April 2025 – March 2026) into the backend and ensure the Appraisal UI can load and display it for Jayesh.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "onboarding"
+          "Employee Performance Appraisal Details",
+          "Appraisal Period: April 2025 – March 2026",
+          "Performance Percentage: 85%",
+          "Performance Grade: Grade A",
+          "Increment Given: 10% salary increment",
+          "Reason: Consistent performance and positive contribution to the organization",
+          "The organization mainly evaluates employees based on: Work efficiency; Quality of output; Discipline and punctuality; Team coordination; Willingness to learn and improve",
+          "Feedback Shared with Employee: Appreciated for dedication and consistency; Encouraged to improve leadership and decision-making skills; Advised to take more initiative in HR activities"
         ]
       },
       "acceptanceCriteria": [
-        "Admin/HR can create/edit onboarding templates and assign them to employees",
-        "Employees can view their assigned onboarding plan and mark tasks as done (and optionally add notes)",
-        "Onboarding dashboard shows plan progress (e.g., completed vs total tasks)",
-        "Tasks and completion status persist and are consistent between Admin/HR view and employee view"
+        "Backend appraisal details storage contains a record for Jayesh’s employeeId with: department \"Human Resources\", job title \"HR Executive\", appraisal period \"April 2025 – March 2026\", work completion 85, quality \"Good and accurate\", timeliness \"Meets deadlines regularly\", teamwork \"Works well with team members\", communication \"Clear and professional\", overall rating 85, grade \"Grade A\", appraisal type \"Annual Performance Appraisal\", increment 10, reason \"Consistent performance and positive contribution to the organization\", criteria list (5 items), feedback list (3 items).",
+        "The appraisal seed operation is idempotent and does not overwrite non-seed changes unless explicitly intended (e.g., only create if missing).",
+        "Opening the Performance → Appraisal page for Jayesh’s employeeId shows the seeded appraisal data instead of an empty/loading state."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Implement the Performance module with goals and performance reviews: allow creating goals for an employee (title, description, start/end dates, status, progress), and a review cycle feature where Admin/HR can create a review cycle and request employee self-review input plus manager/HR evaluation notes.",
+      "text": "Replace the backend onboarding questionnaire questions with the exact provided list (10–15 questions; use the full provided list of 15), and ensure the onboarding questionnaire screen loads reliably without getting stuck on loading for non-admin users.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "performance"
+          "Onboarding Process – Sample Questions (10–15 Only)\nWhat is your full name?\nWhat is your age and date of birth?\nWhat is your marital status?\nWhat is your contact number and email ID?\nWhat is your current address?\nWhat is your highest educational qualification?\nWhich position/designation are you joining for?\nWhich department will you work in?\nWhat is your date of joining?\nDo you have any prior work experience? (Yes/No)\nWho will be your reporting manager?\nWhat are your key skills related to this job?\nHave you read and understood company rules and policies?\nAre you comfortable with company working hours and location?\nDo you agree to provide correct information and follow company guidelines?",
+          "Onboarding stays on loading and shows nothing"
         ]
       },
       "acceptanceCriteria": [
-        "Admin/HR can create and manage goals for employees; employees can update progress on their own goals",
-        "Admin/HR can create a review cycle and associate it with employees",
-        "Employees can submit self-review text for an assigned cycle; Admin/HR can record evaluation notes and finalize a cycle",
-        "Performance data persists and is access-controlled (employees cannot view other employees’ reviews)"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Create an HRMS navigation structure and core screens in the React app: Dashboard, Employees (Directory + Profile), Onboarding (Admin/HR templates + assignments, Employee tasks), Performance (Goals + Reviews). Use React Query for data fetching/caching and show loading/empty/error states for all views.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "portal"
-        ]
-      },
-      "acceptanceCriteria": [
-        "App has a consistent layout with sidebar/top navigation and clear routes/pages for each module",
-        "All lists and detail views display meaningful empty states (e.g., “No employees yet”) and loading indicators",
-        "Mutations (create/update) show success/error feedback and update cached lists without full refresh"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Define a coherent, non-blue/purple visual theme for the HRMS portal (colors, typography, spacing, component styling) and apply it consistently across all screens using Tailwind + shadcn components.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "hrms portal"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A single theme is applied consistently across navigation, pages, forms, and tables",
-        "UI is readable and professional with strong information hierarchy for admin workflows",
-        "No dominant blue/purple theme is used"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Generate and include required static images in the frontend at `frontend/public/assets/generated/` and render them in the app UI (e.g., app header/login and dashboard).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "portal"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Images exist under `frontend/public/assets/generated/` and are referenced directly by the frontend (not served via backend)",
-        "Images render crisply at intended sizes and do not break layout on common screen sizes"
+        "Backend getOnboardingQuestions() returns exactly the 15 provided questions, in the same order, with English text.",
+        "For a non-admin user, visiting /onboarding/questionnaire loads questions and renders the questionnaire form without calling admin-only employee search APIs.",
+        "The questionnaire page shows a clear English empty/error state if prerequisites are missing (e.g., no resolved employeeId), rather than appearing to load indefinitely.",
+        "Submitting questionnaire responses succeeds for the logged-in employee (once employeeId is resolved) and previously submitted responses render correctly under “Previous Submissions”."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`",
-    "Do not edit files in `frontend/immutablePaths`; compose existing UI components instead",
-    "Use English for all user-facing UI text"
+    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Payroll processing, tax calculations, or benefits administration",
-    "Third-party auth providers (only Internet Identity)",
-    "Real-time chat/notifications",
-    "External database or external SaaS HR integrations"
+    "Implementing third-party authentication providers (only Internet Identity is supported).",
+    "Adding an external database or integrating with non-IC storage services.",
+    "Building real-time features (WebSockets/push notifications)."
   ],
   "imageRequirements": {
-    "required": [
-      "Minimal HRMS logo mark, geometric and professional (hrms-logo.dim_512x512.png)",
-      "Dashboard hero illustration with people/teamwork and HR motif, clean flat style (hrms-hero.dim_1600x600.png)"
-    ],
+    "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

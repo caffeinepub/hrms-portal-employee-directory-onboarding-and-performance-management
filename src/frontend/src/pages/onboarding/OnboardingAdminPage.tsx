@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useSearchEmployees, useIsCallerAdmin } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,17 @@ import AccessDenied from '../../components/feedback/AccessDenied';
 import type { EmployeeId } from '../../backend';
 
 export default function OnboardingAdminPage() {
+  const navigate = useNavigate();
+  const searchParams = useSearch({ strict: false }) as { employeeId?: string };
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<EmployeeId | null>(null);
   const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
-  const { data: employees } = useSearchEmployees('');
+  const { data: employees } = useSearchEmployees('', { adminOnly: true });
+
+  useEffect(() => {
+    if (searchParams.employeeId && isAdmin) {
+      setSelectedEmployeeId(BigInt(searchParams.employeeId));
+    }
+  }, [searchParams.employeeId, isAdmin]);
 
   if (isAdminLoading) {
     return (
@@ -39,7 +48,7 @@ export default function OnboardingAdminPage() {
           <CardTitle>Select Employee</CardTitle>
           <CardDescription>Choose an employee to assign onboarding tasks</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Select
             value={selectedEmployeeId?.toString() || ''}
             onValueChange={(value) => setSelectedEmployeeId(BigInt(value))}
@@ -55,6 +64,19 @@ export default function OnboardingAdminPage() {
               ))}
             </SelectContent>
           </Select>
+
+          {selectedEmployeeId && (
+            <Button
+              variant="outline"
+              onClick={() => navigate({ 
+                to: '/onboarding/questionnaire',
+                search: { employeeId: selectedEmployeeId.toString() }
+              })}
+              className="w-full"
+            >
+              View Questionnaire
+            </Button>
+          )}
         </CardContent>
       </Card>
 

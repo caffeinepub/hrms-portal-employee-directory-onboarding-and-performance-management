@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   useGetMyEmployeeId,
   useGetEmployeeReviews,
@@ -28,6 +29,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ReviewsPage() {
+  const navigate = useNavigate();
+  const searchParams = useSearch({ strict: false }) as { employeeId?: string };
   const { data: isAdmin } = useIsCallerAdmin();
   const { data: myEmployeeId } = useGetMyEmployeeId();
   const { data: employees } = useSearchEmployees('');
@@ -46,6 +49,12 @@ export default function ReviewsPage() {
   const [cycleTitle, setCycleTitle] = useState('');
   const [cycleStartDate, setCycleStartDate] = useState('');
   const [cycleEndDate, setCycleEndDate] = useState('');
+
+  useEffect(() => {
+    if (searchParams.employeeId && isAdmin) {
+      setSelectedEmployeeId(BigInt(searchParams.employeeId));
+    }
+  }, [searchParams.employeeId, isAdmin]);
 
   const handleCreateCycle = () => {
     if (cycleTitle && cycleStartDate && cycleEndDate) {

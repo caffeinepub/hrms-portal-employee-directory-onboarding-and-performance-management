@@ -1,13 +1,14 @@
 import { useGetMyEmployeeId, useGetEmployee } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Briefcase, Calendar, User } from 'lucide-react';
+import { Mail, Briefcase, Calendar, User, IdCard } from 'lucide-react';
 
 export default function MyProfilePage() {
-  const { data: myEmployeeId, isLoading: idLoading } = useGetMyEmployeeId();
-  const { data: employee, isLoading: employeeLoading } = useGetEmployee(myEmployeeId);
+  const { data: myEmployeeId, isLoading: idLoading, isFetching: idFetching } = useGetMyEmployeeId();
+  const { data: employee, isLoading: employeeLoading, isFetching: employeeFetching } = useGetEmployee(myEmployeeId);
 
-  const isLoading = idLoading || employeeLoading;
+  // Show loading state while fetching or if we're still loading
+  const isLoading = idLoading || employeeLoading || idFetching || employeeFetching;
 
   if (isLoading) {
     return (
@@ -20,7 +21,8 @@ export default function MyProfilePage() {
     );
   }
 
-  if (!employee) {
+  // Only show empty state if we're not loading and there's no employee
+  if (!employee && !isLoading) {
     return (
       <div className="text-center py-12">
         <Card>
@@ -30,6 +32,18 @@ export default function MyProfilePage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  // If still loading but we have no employee yet, show loading
+  if (!employee) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
       </div>
     );
   }
@@ -97,6 +111,15 @@ export default function MyProfilePage() {
               <p className="text-sm font-medium mb-2">Employee ID</p>
               <p className="text-sm text-muted-foreground font-mono">{employee.id.toString()}</p>
             </div>
+            {employee.externalEmployeeId && (
+              <div className="flex items-center gap-3">
+                <IdCard className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">External Employee ID</p>
+                  <p className="text-sm text-muted-foreground font-mono">{employee.externalEmployeeId}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

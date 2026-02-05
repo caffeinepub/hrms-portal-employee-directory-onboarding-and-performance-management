@@ -17,6 +17,10 @@ import type {
   CycleId,
   ReviewId,
   UserRole,
+  OnboardingResponse,
+  QuestionnaireResponse,
+  AppraisalDetails,
+  SearchResult,
 } from '../backend';
 import { toast } from 'sonner';
 
@@ -50,8 +54,33 @@ export function useSaveCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.saveCallerUserProfile(profile);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    onSuccess: async () => {
+      // Invalidate and refetch the user profile
+      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      
+      // Critical: Refetch myEmployeeId immediately after profile save
+      // This allows the backend to link the user to an existing employee record
+      await queryClient.invalidateQueries({ queryKey: ['myEmployeeId'] });
+      
+      // Refetch to get the new employeeId
+      const myEmployeeId = await queryClient.fetchQuery({
+        queryKey: ['myEmployeeId'],
+        queryFn: async () => {
+          if (!actor) return null;
+          return actor.getMyEmployeeId();
+        },
+      });
+
+      // If we got an employeeId, invalidate all employee-dependent queries
+      if (myEmployeeId) {
+        await queryClient.invalidateQueries({ queryKey: ['employee', myEmployeeId.toString()] });
+        await queryClient.invalidateQueries({ queryKey: ['onboardingTasks', myEmployeeId.toString()] });
+        await queryClient.invalidateQueries({ queryKey: ['goals', myEmployeeId.toString()] });
+        await queryClient.invalidateQueries({ queryKey: ['reviews', myEmployeeId.toString()] });
+        await queryClient.invalidateQueries({ queryKey: ['appraisalDetails', myEmployeeId.toString()] });
+        await queryClient.invalidateQueries({ queryKey: ['questionnaireResponses', myEmployeeId.toString()] });
+      }
+      
       toast.success('Profile saved successfully');
     },
     onError: (error: Error) => {
@@ -114,8 +143,11 @@ export function useGetEmployee(employeeId: EmployeeId | null | undefined) {
   });
 }
 
-export function useSearchEmployees(searchTerm: string) {
+export function useSearchEmployees(searchTerm: string, options?: { adminOnly?: boolean }) {
   const { actor, isFetching: actorFetching } = useActor();
+  const { data: isAdmin } = useIsCallerAdmin();
+
+  const shouldEnable = options?.adminOnly === true ? isAdmin === true : true;
 
   return useQuery<EmployeeProfile[]>({
     queryKey: ['employees', searchTerm],
@@ -123,7 +155,7 @@ export function useSearchEmployees(searchTerm: string) {
       if (!actor) return [];
       return actor.searchEmployees(searchTerm);
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && shouldEnable,
   });
 }
 
@@ -222,6 +254,58 @@ export function useUpdateOnboardingTaskStatus() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to update task: ${error.message}`);
+    },
+  });
+}
+
+// Onboarding Questionnaire Queries
+export function useGetOnboardingQuestions() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<string[]>({
+    queryKey: ['onboardingQuestions'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getOnboardingQuestions();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGetQuestionnaireResponses(employeeId: EmployeeId | null | undefined) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<QuestionnaireResponse[]>({
+    queryKey: ['questionnaireResponses', employeeId?.toString()],
+    queryFn: async () => {
+      if (!actor || !employeeId) return [];
+      return actor.getQuestionnaireResponses(employeeId);
+    },
+    enabled: !!actor && !actorFetching && !!employeeId,
+  });
+}
+
+export function useSubmitQuestionnaireResponses() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      employeeId,
+      responses,
+    }: {
+      employeeId: EmployeeId;
+      responses: OnboardingResponse[];
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.submitQuestionnaireResponses(employeeId, responses);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['questionnaireResponses', variables.employeeId.toString()] });
+      toast.success('Questionnaire submitted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to submit questionnaire: ${error.message}`);
     },
   });
 }
@@ -444,5 +528,52 @@ export function useSubmitHRReview() {
     onError: (error: Error) => {
       toast.error(`Failed to submit review: ${error.message}`);
     },
+  });
+}
+
+// Appraisal Details Queries
+export function useGetAppraisalDetails(employeeId: EmployeeId | null | undefined) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AppraisalDetails | null>({
+    queryKey: ['appraisalDetails', employeeId?.toString()],
+    queryFn: async () => {
+      if (!actor || !employeeId) return null;
+      return actor.getAppraisalDetails(employeeId);
+    },
+    enabled: !!actor && !actorFetching && !!employeeId,
+  });
+}
+
+export function useSaveAppraisalDetails() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (details: AppraisalDetails) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveAppraisalDetails(details);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['appraisalDetails', variables.employeeId.toString()] });
+      toast.success('Appraisal details saved successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to save appraisal: ${error.message}`);
+    },
+  });
+}
+
+// Global Search Query
+export function useGlobalSearch(searchTerm: string) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<SearchResult[]>({
+    queryKey: ['globalSearch', searchTerm],
+    queryFn: async () => {
+      if (!actor || !searchTerm || searchTerm.trim().length === 0) return [];
+      return actor.globalSearch(searchTerm);
+    },
+    enabled: !!actor && !actorFetching && !!searchTerm && searchTerm.trim().length > 0,
   });
 }

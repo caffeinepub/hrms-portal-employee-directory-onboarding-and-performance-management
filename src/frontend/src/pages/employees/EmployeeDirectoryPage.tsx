@@ -15,7 +15,7 @@ export default function EmployeeDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
-  const { data: employees, isLoading } = useSearchEmployees(searchTerm);
+  const { data: employees, isLoading } = useSearchEmployees(searchTerm, { adminOnly: true });
 
   if (isAdminLoading) {
     return (

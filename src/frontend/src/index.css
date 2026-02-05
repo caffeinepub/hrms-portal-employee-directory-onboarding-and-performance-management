@@ -4,6 +4,7 @@
 
 @layer base {
     :root {
+        color-scheme: light;
         --radius: 0.625rem;
         --background: 0.99 0 0;
         --foreground: 0.15 0 0;
@@ -80,5 +81,72 @@
     body {
         @apply bg-background text-foreground;
         font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+@layer components {
+    /* App shell background with soft-toys image */
+    .app-shell-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+        background-image: url('/assets/generated/soft-toys-bg.dim_2400x1600.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    /* Light overlay to ensure background stays subtle */
+    .app-shell-bg::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: oklch(var(--background) / 0.85);
+        backdrop-filter: blur(2px);
+    }
+
+    .dark .app-shell-bg::after {
+        background: linear-gradient(
+            135deg,
+            oklch(var(--background) / 0.50) 0%,
+            oklch(var(--background) / 0.60) 100%
+        );
+        backdrop-filter: blur(2px);
+    }
+
+    /* Readability surface treatment for content areas */
+    .readable-surface {
+        background: oklch(var(--card) / 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid oklch(var(--border) / 0.5);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .dark .readable-surface {
+        background: oklch(var(--card) / 0.94);
+        backdrop-filter: blur(12px);
+        border: 1px solid oklch(var(--border) / 0.7);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Enhanced readability for primary navigation and header */
+    .readable-nav {
+        background: oklch(var(--card) / 0.98);
+        backdrop-filter: blur(12px);
+        border-color: oklch(var(--border) / 0.6);
+    }
+
+    .dark .readable-nav {
+        background: oklch(var(--card) / 0.96);
+        backdrop-filter: blur(16px);
+        border-color: oklch(var(--border) / 0.8);
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     }
 }

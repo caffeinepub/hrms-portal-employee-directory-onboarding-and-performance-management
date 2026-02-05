@@ -3,7 +3,7 @@ import { useGetEmployee, useIsCallerAdmin } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Mail, Briefcase, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Briefcase, Calendar, User, IdCard } from 'lucide-react';
 import { useState } from 'react';
 import EmployeeFormDialog from '../../components/employees/EmployeeFormDialog';
 
@@ -110,6 +110,15 @@ export default function EmployeeDetailPage() {
               <p className="text-sm font-medium mb-2">Employee ID</p>
               <p className="text-sm text-muted-foreground font-mono">{employee.id.toString()}</p>
             </div>
+            {employee.externalEmployeeId && (
+              <div className="flex items-center gap-3">
+                <IdCard className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">External Employee ID</p>
+                  <p className="text-sm text-muted-foreground font-mono">{employee.externalEmployeeId}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -119,27 +128,46 @@ export default function EmployeeDetailPage() {
           <CardTitle>Quick Links</CardTitle>
           <CardDescription>Access related employee information</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-4">
           <Button
             variant="outline"
             className="h-auto py-4 flex-col gap-2"
-            onClick={() => navigate({ to: '/onboarding/admin' })}
+            onClick={() => navigate({ 
+              to: '/onboarding/admin',
+              search: { employeeId: employee.id.toString() }
+            })}
           >
             Onboarding Tasks
           </Button>
           <Button
             variant="outline"
             className="h-auto py-4 flex-col gap-2"
-            onClick={() => navigate({ to: '/performance/goals' })}
+            onClick={() => navigate({ 
+              to: '/onboarding/questionnaire',
+              search: { employeeId: employee.id.toString() }
+            })}
+          >
+            Questionnaire
+          </Button>
+          <Button
+            variant="outline"
+            className="h-auto py-4 flex-col gap-2"
+            onClick={() => navigate({ 
+              to: '/performance/goals',
+              search: { employeeId: employee.id.toString() }
+            })}
           >
             Performance Goals
           </Button>
           <Button
             variant="outline"
             className="h-auto py-4 flex-col gap-2"
-            onClick={() => navigate({ to: '/performance/reviews' })}
+            onClick={() => navigate({ 
+              to: '/performance/appraisal',
+              search: { employeeId: employee.id.toString() }
+            })}
           >
-            Reviews
+            Appraisal
           </Button>
         </CardContent>
       </Card>

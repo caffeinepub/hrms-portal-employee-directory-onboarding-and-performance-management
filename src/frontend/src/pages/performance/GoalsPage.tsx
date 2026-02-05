@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useGetMyEmployeeId, useGetEmployeeGoals, useIsCallerAdmin, useSearchEmployees } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,14 +11,22 @@ import GoalFormDialog from '../../components/performance/GoalFormDialog';
 import type { EmployeeId } from '../../backend';
 
 export default function GoalsPage() {
+  const navigate = useNavigate();
+  const searchParams = useSearch({ strict: false }) as { employeeId?: string };
   const { data: isAdmin } = useIsCallerAdmin();
   const { data: myEmployeeId } = useGetMyEmployeeId();
-  const { data: employees } = useSearchEmployees('');
+  const { data: employees } = useSearchEmployees('', { adminOnly: true });
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<EmployeeId | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const displayEmployeeId = isAdmin && selectedEmployeeId ? selectedEmployeeId : myEmployeeId;
   const { data: goals, isLoading } = useGetEmployeeGoals(displayEmployeeId);
+
+  useEffect(() => {
+    if (searchParams.employeeId && isAdmin) {
+      setSelectedEmployeeId(BigInt(searchParams.employeeId));
+    }
+  }, [searchParams.employeeId, isAdmin]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -3,32 +3,59 @@ import List "mo:core/List";
 import Time "mo:core/Time";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Array "mo:core/Array";
 import Text "mo:core/Text";
-import Iter "mo:core/Iter";
-import Order "mo:core/Order";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+// Apply migration on upgrade.
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Types
   type EmployeeId = Nat;
   type TaskId = Nat;
   type GoalId = Nat;
   type CycleId = Nat;
   type ReviewId = Nat;
+  type ExternalEmployeeId = Text;
 
-  var idCounter = 0;
-
-  func nextId() : Nat {
-    idCounter += 1;
-    idCounter;
+  type OnboardingResponse = {
+    questionId : Nat;
+    response : Text;
+    timestamp : Time.Time;
   };
 
-  public type UserProfile = {
+  type QuestionnaireResponse = {
+    employeeId : EmployeeId;
+    responses : [OnboardingResponse];
+    submittedBy : Principal;
+    submittedAt : Time.Time;
+  };
+
+  type AppraisalDetails = {
+    employeeId : EmployeeId;
+    employeeName : Text;
+    department : Text;
+    jobTitle : Text;
+    appraisalPeriod : Text;
+    workCompletionPercent : Nat;
+    qualityOfWork : Text;
+    timeliness : Text;
+    teamwork : Text;
+    communicationSkills : Text;
+    overallRatingPercent : Nat;
+    grade : Text;
+    appraisalType : Text;
+    incrementPercent : Nat;
+    reasonForIncrement : Text;
+    criteria : [Text];
+    feedback : [Text];
+    createdAt : Time.Time;
+  };
+
+  type UserProfile = {
     name : Text;
     email : Text;
     employeeId : ?EmployeeId;
@@ -47,6 +74,7 @@ actor {
     onboardingPlanId : ?Nat;
     performanceCycleId : ?Nat;
     principalId : ?Principal;
+    externalEmployeeId : ?ExternalEmployeeId;
   };
 
   type EmploymentStatus = {
@@ -116,6 +144,8 @@ actor {
     #completed;
   };
 
+  var idCounter = 0;
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let employees = Map.empty<EmployeeId, EmployeeProfile>();
   let principalToEmployee = Map.empty<Principal, EmployeeId>();
@@ -123,6 +153,32 @@ actor {
   let goals = Map.empty<EmployeeId, List.List<Goal>>();
   let performanceCycles = Map.empty<CycleId, PerformanceReviewCycle>();
   let reviews = Map.empty<EmployeeId, List.List<Review>>();
+  let questionnaireResponses = Map.empty<EmployeeId, List.List<QuestionnaireResponse>>();
+  let appraisalDetails = Map.empty<EmployeeId, AppraisalDetails>();
+
+  func nextId() : Nat {
+    idCounter += 1;
+    idCounter;
+  };
+
+  // Onboarding Questions
+  let onboardingQuestions = [
+    "What is your preferred name?", // 1
+    "Do you have any accessibility requirements?", // 2
+    "What are your preferred working hours?", // 3
+    "Do you have any dietary restrictions?", // 4
+    "What is your preferred communication method?", // 5
+    "Do you have any specific learning objectives?", // 6
+    "Are there any tools or software you need?", // 7
+    "What are your expectations from the company?", // 8
+    "Do you have any previous experience in this role?", // 9
+    "What motivates you at work?", // 10
+    "Do you require any relocation assistance?", // 11
+    "What are your career goals?", // 12
+    "Are there any concerns you have about onboarding?", // 13
+    "What type of work environment do you prefer?", // 14
+    "Is there anything else we should know about you?", // 15
+  ];
 
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -132,11 +188,28 @@ actor {
     userProfiles.get(caller);
   };
 
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
+  // Ensure backend user profile exists after sign-in and return principal.
+  // Requires authenticated user (not anonymous/guest)
+  public shared ({ caller }) func ensureUserProfile(name : Text, email : Text) : async Principal {
+    // Reject anonymous principals to prevent spam and unauthorized profile creation
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot create profiles");
     };
-    userProfiles.get(user);
+
+    switch (userProfiles.get(caller)) {
+      case (null) {
+        let newProfile : UserProfile = {
+          name;
+          email;
+          employeeId = null;
+        };
+        userProfiles.add(caller, newProfile);
+      };
+      case (_) {
+        // Don't update if already exists (keep existing profile)
+      };
+    };
+    caller;
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
@@ -144,6 +217,13 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
   };
 
   // Helper function to check if caller owns employee record
@@ -155,7 +235,7 @@ actor {
   };
 
   // Employee Management
-  type CreateEmployeeProfileArgs = {
+  public type CreateEmployeeProfileArgs = {
     name : Text;
     email : Text;
     department : Text;
@@ -163,6 +243,7 @@ actor {
     manager : Text;
     startDate : Time.Time;
     principalId : ?Principal;
+    externalEmployeeId : ?ExternalEmployeeId;
   };
 
   public shared ({ caller }) func createEmployee(data : CreateEmployeeProfileArgs) : async ?EmployeeId {
@@ -184,6 +265,7 @@ actor {
       onboardingPlanId = null;
       performanceCycleId = null;
       principalId = data.principalId;
+      externalEmployeeId = data.externalEmployeeId;
     };
 
     employees.add(id, profile);
@@ -196,7 +278,7 @@ actor {
     ?id;
   };
 
-  type UpdateEmployeeProfileArgs = {
+  public type UpdateEmployeeProfileArgs = {
     name : ?Text;
     email : ?Text;
     department : ?Text;
@@ -204,6 +286,7 @@ actor {
     manager : ?Text;
     status : ?EmploymentStatus;
     principalId : ?Principal;
+    externalEmployeeId : ?ExternalEmployeeId;
   };
 
   public shared ({ caller }) func updateEmployee(id : EmployeeId, data : UpdateEmployeeProfileArgs) : async Bool {
@@ -226,7 +309,11 @@ actor {
           createdBy = existing.createdBy;
           onboardingPlanId = existing.onboardingPlanId;
           performanceCycleId = existing.performanceCycleId;
-          principalId = switch (data.principalId) { case (?p) ?p; case null existing.principalId };
+          principalId = switch (data.principalId) { case (?p) { ?p }; case null existing.principalId };
+          externalEmployeeId = switch (data.externalEmployeeId) {
+            case (?extId) { ?extId };
+            case (null) { existing.externalEmployeeId };
+          };
         };
 
         employees.add(id, updated);
@@ -243,7 +330,7 @@ actor {
 
   public query ({ caller }) func getEmployee(id : EmployeeId) : async ?EmployeeProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view employees");
+      Runtime.trap("Unauthorized: Only users can view employees");
     };
 
     if (not AccessControl.isAdmin(accessControlState, caller) and not isEmployeeOwner(caller, id)) {
@@ -274,11 +361,53 @@ actor {
     results.toArray();
   };
 
-  public query ({ caller }) func getMyEmployeeId() : async ?EmployeeId {
+  // Changed from query to shared to allow state modification (auto-linking)
+  public shared ({ caller }) func getMyEmployeeId() : async ?EmployeeId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can get employee ID");
     };
-    principalToEmployee.get(caller);
+
+    switch (principalToEmployee.get(caller)) {
+      case (?employeeId) { ?employeeId };
+      case null {
+        switch (userProfiles.get(caller)) {
+          case (null) { null };
+          case (?profile) {
+            let normalizedUserName = profile.name.trim(#char ' ').toLower();
+            if (normalizedUserName == "") {
+              return null;
+            };
+
+            // Find all matching employees (case-insensitive name compare)
+            var numMatches = 0;
+            var matchedEmployee : ?EmployeeProfile = null;
+
+            for ((_, emp) in employees.entries()) {
+              let normalizedEmployeeName = emp.name.trim(#char ' ').toLower();
+              if (normalizedEmployeeName == normalizedUserName) {
+                numMatches += 1;
+                if (numMatches > 1) {
+                  return null;
+                };
+                matchedEmployee := ?emp;
+              };
+            };
+
+            if (numMatches == 1) {
+              switch (matchedEmployee) {
+                case (null) { null };
+                case (?employee) {
+                  principalToEmployee.add(caller, employee.id);
+                  ?employee.id;
+                };
+              };
+            } else {
+              null;
+            };
+          };
+        };
+      };
+    };
   };
 
   // Onboarding Tasks
@@ -347,6 +476,60 @@ actor {
           false;
         };
       };
+    };
+  };
+
+  // Onboarding Questionnaire
+  public query ({ caller }) func getOnboardingQuestions() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view onboarding questions");
+    };
+    onboardingQuestions;
+  };
+
+  public shared ({ caller }) func submitQuestionnaireResponses(employeeId : EmployeeId, responses : [OnboardingResponse]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can submit questionnaire responses");
+    };
+
+    // Allow both the employee themselves and admins to submit responses
+    if (not AccessControl.isAdmin(accessControlState, caller) and not isEmployeeOwner(caller, employeeId)) {
+      Runtime.trap("Unauthorized: Can only submit questionnaire responses for your own employee record or as an admin");
+    };
+
+    let newResponse : QuestionnaireResponse = {
+      employeeId;
+      responses;
+      submittedBy = caller;
+      submittedAt = Time.now();
+    };
+
+    switch (questionnaireResponses.get(employeeId)) {
+      case (null) {
+        let responseList = List.empty<QuestionnaireResponse>();
+        responseList.add(newResponse);
+        questionnaireResponses.add(employeeId, responseList);
+      };
+      case (?existingList) {
+        existingList.add(newResponse);
+        questionnaireResponses.add(employeeId, existingList);
+      };
+    };
+  };
+
+  public query ({ caller }) func getQuestionnaireResponses(employeeId : EmployeeId) : async [QuestionnaireResponse] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view questionnaire responses");
+    };
+
+    // Allow both the employee themselves and admins to view responses
+    if (not AccessControl.isAdmin(accessControlState, caller) and not isEmployeeOwner(caller, employeeId)) {
+      Runtime.trap("Unauthorized: Can only view questionnaire responses for your own employee record or as an admin");
+    };
+
+    switch (questionnaireResponses.get(employeeId)) {
+      case (null) { [] };
+      case (?responses) { responses.toArray() };
     };
   };
 
@@ -622,5 +805,145 @@ actor {
       case null { null };
       case (?reviewList) { ?reviewList.toArray() };
     };
+  };
+
+  // Appraisal Details
+  public shared ({ caller }) func saveAppraisalDetails(details : AppraisalDetails) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can save appraisal details");
+    };
+
+    appraisalDetails.add(details.employeeId, details);
+  };
+
+  public query ({ caller }) func getAppraisalDetails(employeeId : EmployeeId) : async ?AppraisalDetails {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view appraisal details");
+    };
+
+    if (not AccessControl.isAdmin(accessControlState, caller) and not isEmployeeOwner(caller, employeeId)) {
+      Runtime.trap("Unauthorized: Can only view your own appraisal details");
+    };
+
+    appraisalDetails.get(employeeId);
+  };
+
+  public query ({ caller }) func searchAppraisalDetails(searchTerm : Text) : async [AppraisalDetails] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can search appraisal details");
+    };
+
+    let results = List.empty<AppraisalDetails>();
+
+    for ((_, details) in appraisalDetails.entries()) {
+      if (
+        details.employeeName.contains(#text searchTerm) or
+        details.department.contains(#text searchTerm) or
+        details.jobTitle.contains(#text searchTerm) or
+        details.appraisalPeriod.contains(#text searchTerm)
+      ) {
+        results.add(details);
+      };
+    };
+
+    results.toArray();
+  };
+
+  // Global Search
+  public type SearchResult = {
+    #employee : EmployeeProfile;
+    #onboardingTask : { employeeId : EmployeeId; task : OnboardingTask };
+    #questionnaireResponse : { employeeId : EmployeeId; response : QuestionnaireResponse };
+    #goal : { employeeId : EmployeeId; goal : Goal };
+    #review : { employeeId : EmployeeId; review : Review };
+    #appraisal : AppraisalDetails;
+  };
+
+  public query ({ caller }) func globalSearch(searchTerm : Text) : async [SearchResult] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can perform global search");
+    };
+
+    let results = List.empty<SearchResult>();
+
+    // Search employees
+    for ((_, employee) in employees.entries()) {
+      if (
+        employee.name.contains(#text searchTerm) or
+        employee.email.contains(#text searchTerm) or
+        employee.department.contains(#text searchTerm) or
+        employee.jobTitle.contains(#text searchTerm)
+      ) {
+        results.add(#employee(employee));
+      };
+    };
+
+    // Search onboarding tasks
+    for ((empId, taskList) in onboardingTasks.entries()) {
+      for (task in taskList.values()) {
+        if (
+          task.title.contains(#text searchTerm) or
+          task.description.contains(#text searchTerm)
+        ) {
+          results.add(#onboardingTask({ employeeId = empId; task }));
+        };
+      };
+    };
+
+    // Search questionnaire responses
+    for ((empId, responseList) in questionnaireResponses.entries()) {
+      for (qr in responseList.values()) {
+        var matchFound = false;
+        for (resp in qr.responses.vals()) {
+          if (resp.response.contains(#text searchTerm)) {
+            matchFound := true;
+          };
+        };
+        if (matchFound) {
+          results.add(#questionnaireResponse({ employeeId = empId; response = qr }));
+        };
+      };
+    };
+
+    // Search goals
+    for ((empId, goalList) in goals.entries()) {
+      for (goal in goalList.values()) {
+        if (
+          goal.title.contains(#text searchTerm) or
+          goal.description.contains(#text searchTerm)
+        ) {
+          results.add(#goal({ employeeId = empId; goal }));
+        };
+      };
+    };
+
+    // Search reviews
+    for ((empId, reviewList) in reviews.entries()) {
+      for (review in reviewList.values()) {
+        if (
+          review.selfReview.contains(#text searchTerm) or
+          review.managerReview.contains(#text searchTerm) or
+          review.hrReview.contains(#text searchTerm)
+        ) {
+          results.add(#review({ employeeId = empId; review }));
+        };
+      };
+    };
+
+    // Search appraisal details
+    for ((_, details) in appraisalDetails.entries()) {
+      if (
+        details.employeeName.contains(#text searchTerm) or
+        details.department.contains(#text searchTerm) or
+        details.jobTitle.contains(#text searchTerm) or
+        details.appraisalPeriod.contains(#text searchTerm) or
+        details.qualityOfWork.contains(#text searchTerm) or
+        details.reasonForIncrement.contains(#text searchTerm)
+      ) {
+        results.add(#appraisal(details));
+      };
+    };
+
+    results.toArray();
   };
 };
